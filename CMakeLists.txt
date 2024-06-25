@@ -46,6 +46,7 @@ pico_set_program_version(capacitive-dance-pad-pico "0.1")
 
 # Generate PIO header
 pico_generate_pio_header(capacitive-dance-pad-pico ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
+pico_generate_pio_header(capacitive-dance-pad-pico ${CMAKE_CURRENT_LIST_DIR}/touch.pio)
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(capacitive-dance-pad-pico 0)
@@ -62,7 +63,7 @@ target_include_directories(capacitive-dance-pad-pico PRIVATE
 )
 
 # Add any user requested libraries
-target_link_libraries(capacitive-dance-pad-pico 
+target_link_libraries(capacitive-dance-pad-pico
         hardware_pio
         hardware_timer
         )

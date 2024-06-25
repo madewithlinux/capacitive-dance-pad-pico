@@ -1,0 +1,46 @@
+.program touch
+
+; ground the input pin
+    set pindirs, 1
+    set pins, 0
+
+; and wait some number of cycles for it to discharge
+    set y, 31
+charge_loop:
+    jmp y--, charge_loop [31]
+
+    ; load x with max input value
+    set x, 1
+    in x, 1
+    in null, 12
+    ; in null, 20
+    mov x, isr
+
+    set pindirs, 0          ; set to input
+loop:                       ; wait for pin to charge
+    jmp pin, done
+    jmp x--, loop
+
+done:
+    mov isr, x
+    push block
+
+
+% c-sdk {
+// this is a raw helper function for use by the user which sets up the GPIO output, and configures the SM to output on a particular pin
+
+void touch_program_init(PIO pio, uint sm, uint offset, uint pin) {
+   pio_gpio_init(pio, pin);
+   pio_sm_set_consecutive_pindirs(pio, sm, pin, 1, true);
+   pio_sm_config c = touch_program_get_default_config(offset);
+   // sm_config_set_out_pins(&c, pin, 1);
+   sm_config_set_set_pins(&c, pin, 1);
+   sm_config_set_jmp_pin(&c, pin);
+   sm_config_set_in_shift(&c, false, false, 32);
+   sm_config_set_clkdiv(&c, 1.0);
+
+   pio_sm_init(pio, sm, offset, &c);
+
+   // pio_sm_set_enabled(pio, sm, true);
+}
+%}
