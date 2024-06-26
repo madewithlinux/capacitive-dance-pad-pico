@@ -35,5 +35,17 @@
     "raspberry-pi-pico.cmakeAutoConfigure": true,
     "raspberry-pi-pico.useCmakeTools": false,
     "raspberry-pi-pico.cmakePath": "${HOME}/.pico-sdk/cmake/v3.28.0-rc6/bin/cmake",
-    "raspberry-pi-pico.ninjaPath": "${HOME}/.pico-sdk/ninja/v1.12.1/ninja"
+    "raspberry-pi-pico.ninjaPath": "${HOME}/.pico-sdk/ninja/v1.12.1/ninja",
+    "files.associations": {
+        "*.md": "markdown",
+        "*.effect": "hlsl",
+        "*.bsml": "xml",
+        "*.vrsettings": "json",
+        "*.bplist": "json",
+        "*.dat": "json",
+        "Justfile": "makefile",
+        "*.bu": "yaml",
+        "*.ipxe": "shellscript",
+        "array": "cpp"
+    }
 }

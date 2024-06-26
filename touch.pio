@@ -25,8 +25,12 @@ done:
     mov isr, x
     push block
 
+    irq wait 0              ; wait for other state machines to sync with us
+
 
 % c-sdk {
+#define TOUCH_TIMEOUT  (1 << 12)
+
 // this is a raw helper function for use by the user which sets up the GPIO output, and configures the SM to output on a particular pin
 
 void touch_program_init(PIO pio, uint sm, uint offset, uint pin) {
