@@ -26,6 +26,9 @@ done:
     push block
 
     irq wait 0              ; wait for other state machines to sync with us
+    set pindirs, 1          ; ground pins to increase signal strength of others
+    set pins, 0
+    irq wait 1
 
 
 % c-sdk {

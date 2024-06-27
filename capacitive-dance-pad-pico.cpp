@@ -105,12 +105,13 @@ void read_8_touch_sensors(const uint pio0_offset, const uint pio1_offset, const 
                 const PIO next_pio = pios[(pio_index + 1) % NUM_PIOS];
                 const size_t buffer_offset = pio_index * 4;
 
-                pio_interrupt_clear(pio, 0);
+                pio_interrupt_clear(pio, 1);
                 for (uint sm = 0; sm < 4; sm++)
                 {
                     int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio, sm);
                     buffer[buffer_offset + sm].push_back(value);
                 }
+                pio_interrupt_clear(pio, 0);
             }
         }
         absolute_time_t sampling_end_time = get_absolute_time();
