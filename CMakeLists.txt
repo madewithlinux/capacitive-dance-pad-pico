@@ -39,7 +39,12 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(capacitive-dance-pad-pico capacitive-dance-pad-pico.cpp )
+add_executable(capacitive-dance-pad-pico
+  capacitive-dance-pad-pico.cpp
+  usb_descriptors.c
+  reset_interface.c
+  tusb_config.h
+  )
 
 pico_set_program_name(capacitive-dance-pad-pico "capacitive-dance-pad-pico")
 pico_set_program_version(capacitive-dance-pad-pico "0.1")
@@ -52,9 +57,25 @@ pico_generate_pio_header(capacitive-dance-pad-pico ${CMAKE_CURRENT_LIST_DIR}/tou
 pico_enable_stdio_uart(capacitive-dance-pad-pico 0)
 pico_enable_stdio_usb(capacitive-dance-pad-pico 1)
 
+# TODO: this doesn't work
+# target_compile_definitions(capacitive-dance-pad-pico INTERFACE
+#   PICO_STDIO_USB_ENABLE_RESET_VIA_BAUD_RATE=1
+#   PICO_STDIO_USB_RESET_BOOTSEL_ACTIVITY_LED=25
+#   )
+
+# Make sure TinyUSB can find tusb_config.h
+target_include_directories(capacitive-dance-pad-pico PUBLIC
+        ${CMAKE_CURRENT_LIST_DIR})
+
 # Add the standard library to the build
+# In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
+# for TinyUSB device support and tinyusb_board for the additional board support library used by the example
 target_link_libraries(capacitive-dance-pad-pico
-        pico_stdlib)
+        pico_stdlib
+        pico_multicore
+        pico_unique_id
+        tinyusb_device
+        tinyusb_board)
 
 # Add the standard include files to the build
 target_include_directories(capacitive-dance-pad-pico PRIVATE

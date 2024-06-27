@@ -4,59 +4,15 @@
 #include <numeric>
 
 #include "pico/stdlib.h"
+#include "pico/multicore.h"
 #include "hardware/pio.h"
 #include "hardware/timer.h"
 
-#include "blink.pio.h"
+#include "bsp/board.h"
+#include "tusb.h"
+#include "usb_descriptors.h"
+
 #include "touch.pio.h"
-
-void blink_pin_forever(PIO pio, uint sm, uint offset, uint pin, uint freq)
-{
-    blink_program_init(pio, sm, offset, pin);
-    pio_sm_set_enabled(pio, sm, true);
-
-    printf("Blinking pin %d at %d Hz\n", pin, freq);
-
-    // PIO counter program takes 3 more cycles in total than we pass as
-    // input (wait for n + 1; mov; jmp)
-    pio->txf[sm] = (125000000 / (2 * freq)) - 3;
-}
-
-void read_touch_sensor(PIO pio, uint sm, uint offset, uint pin)
-{
-    gpio_disable_pulls(pin);
-    gpio_set_drive_strength(pin, GPIO_DRIVE_STRENGTH_12MA);
-
-    touch_program_init(pio, sm, offset, pin);
-    pio_sm_set_enabled(pio, sm, true);
-    pio_set_irq0_source_enabled(pio, (enum pio_interrupt_source)((uint)pis_interrupt0 + sm), false);
-    pio_set_irq1_source_enabled(pio, (enum pio_interrupt_source)((uint)pis_interrupt0 + sm), false);
-    // pio_interrupt_clear(pio, 0);
-
-    int32_t touch_timeout = 1 << 12;
-
-    // sleep_ms(4000);
-    // while (true)
-    // {
-    //     while (pio_sm_is_rx_fifo_empty(pio, sm))
-    //     {
-    //         tight_loop_contents();
-    //     }
-    //     int32_t value = touch_timeout - pio->rxf[sm];
-    //     printf("capacitive read value: %u\n", value);
-    //     sleep_ms(100);
-    // }
-    sleep_ms(2000);
-    printf("begin reading PIO fifo\n");
-    while (true)
-    {
-        pio_interrupt_clear(pio, 0);
-        int32_t value = touch_timeout - pio_sm_get_blocking(pio, sm);
-        // int32_t value = pio_sm_get_blocking(pio, sm);
-        printf("capacitive read value: %u\n", value);
-        sleep_ms(250);
-    }
-}
 
 PIO pios[NUM_PIOS] = {pio0, pio1};
 
@@ -154,24 +110,9 @@ int64_t alarm_callback(alarm_id_t id, void *user_data)
     return 0;
 }
 
-int main()
+void core1_entry()
 {
-    stdio_init_all();
-
-    sleep_ms(4000);
-
-    // // PIO Blinking example
-    // PIO pio = pio0;
-    // uint offset = pio_add_program(pio, &touch_program);
-    // printf("Loaded program at %d\n", offset);
-
-    // for (int i = 8; i < 15; i++)
-    // {
-    //     gpio_set_dir(i, true);
-    //     gpio_put(i, false);
-    // }
-    // read_touch_sensor(pio, 0, offset, 15);
-
+    sleep_ms(2000);
     uint pio0_offset = pio_add_program(pio0, &touch_program);
     printf("Loaded program in pio0 at %d\n", pio0_offset);
     uint pio1_offset = pio_add_program(pio1, &touch_program);
@@ -187,14 +128,66 @@ int main()
         //
     };
     read_8_touch_sensors(pio0_offset, pio1_offset, touch_pins);
+}
 
-    // Timer example code - This example fires off the callback after 2000ms
-    add_alarm_in_ms(2000, alarm_callback, NULL, false);
-    // For more examples of timer use see https://github.com/raspberrypi/pico-examples/tree/master/timer
+/* Blink pattern
+ * - 250 ms  : device not mounted
+ * - 1000 ms : device mounted
+ * - 2500 ms : device is suspended
+ */
+enum  {
+  BLINK_NOT_MOUNTED = 250,
+  BLINK_MOUNTED     = 1000,
+  BLINK_SUSPENDED   = 2500,
 
-    while (true)
+  BLINK_ALWAYS_ON   = UINT32_MAX,
+  BLINK_ALWAYS_OFF  = 0
+};
+
+static uint32_t blink_interval_ms = BLINK_NOT_MOUNTED;
+
+void led_blinking_task(void);
+
+int main()
+{
+    board_init();
+    tud_init(BOARD_TUD_RHPORT);
+    stdio_init_all();
+
+    multicore_launch_core1(core1_entry);
+    while (1)
     {
-        printf("Hello, world!\n");
-        sleep_ms(1000);
+        tud_task(); // tinyusb device task
+        // cdc_task();
+        // webserial_task();
+        led_blinking_task();
     }
+
+
+    // // Timer example code - This example fires off the callback after 2000ms
+    // add_alarm_in_ms(2000, alarm_callback, NULL, false);
+    // // For more examples of timer use see https://github.com/raspberrypi/pico-examples/tree/master/timer
+
+    // while (true)
+    // {
+    //     printf("Hello, world!\n");
+    //     sleep_ms(1000);
+    // }
+}
+
+
+//--------------------------------------------------------------------+
+// BLINKING TASK
+//--------------------------------------------------------------------+
+void led_blinking_task(void)
+{
+  static uint32_t start_ms = 0;
+  static bool led_state = false;
+
+  // Blink every interval ms
+  if ( board_millis() - start_ms < blink_interval_ms) return; // not enough time
+  start_ms += blink_interval_ms;
+
+  board_led_write(led_state);
+  led_state = 1 - led_state; // toggle
 }

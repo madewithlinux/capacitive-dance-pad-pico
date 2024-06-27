@@ -46,6 +46,8 @@
         "Justfile": "makefile",
         "*.bu": "yaml",
         "*.ipxe": "shellscript",
-        "array": "cpp"
+        "array": "cpp",
+        "stdio_usb.h": "c",
+        "tusb.h": "c"
     }
 }
