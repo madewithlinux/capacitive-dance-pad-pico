@@ -6,9 +6,18 @@ upload:
 	sleep 1s
 	cp build/capacitive-dance-pad-pico.uf2 /media/julia/RPI-RP2
 
+build:
+	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
+
+build-clean:
+	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build clean
+
 build-upload-monitor:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
 	just upload
 	while ! test -e /dev/ttyACM0; do sleep 1s; done
-	sleep 1s
+	# sleep 1s
+	picocom /dev/ttyACM0
+
+monitor:
 	picocom /dev/ttyACM0

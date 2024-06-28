@@ -41,6 +41,7 @@ pico_sdk_init()
 
 add_executable(capacitive-dance-pad-pico
   capacitive-dance-pad-pico.cpp
+  touch_sensor_thread.cpp
   usb_descriptors.c
   reset_interface.c
   tusb_config.h
