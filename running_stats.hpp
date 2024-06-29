@@ -17,7 +17,7 @@ public:
     count_t count_above_threshold = 0;
     count_t count_below_threshold = 0;
 
-    void add_value(value_t v)
+    inline void add_value(value_t v)
     {
         sum += v;
         if (v > threshold)
@@ -30,27 +30,27 @@ public:
         }
     }
 
-    count_t get_total_count() const
+    inline count_t get_total_count() const
     {
         return count_above_threshold + count_below_threshold;
     }
 
-    value_t get_mean() const
+    inline value_t get_mean() const
     {
         return sum / (count_above_threshold + count_below_threshold);
     }
 
-    float get_mean_float() const
+    inline float get_mean_float() const
     {
         return (float)sum / (float)(count_above_threshold + count_below_threshold);
     }
 
-    bool is_above_threshold() const
+    inline bool is_above_threshold() const
     {
         return count_above_threshold > count_below_threshold;
     }
 
-    void reset()
+    inline void reset()
     {
         *this = running_stats();
     }

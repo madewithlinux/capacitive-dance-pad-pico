@@ -20,7 +20,8 @@ constexpr touch_sensor_config_t touch_sensor_configs[] = {
     {LEFT  , /* H ,*/   9 ,   1,  0},
     // clang-format on
 };
-constexpr int num_touch_sensors = (sizeof(touch_sensor_configs) / sizeof(touch_sensor_configs[0]));
+// constexpr int num_touch_sensors = (sizeof(touch_sensor_configs) / sizeof(touch_sensor_configs[0]));
+constexpr int num_touch_sensors = count_of(touch_sensor_configs);
 
 // split up for convenience elsewhere
 constexpr touch_sensor_config_t touch_sensors_by_pio[NUM_PIOS][num_touch_sensors / 2] = {
@@ -51,4 +52,5 @@ struct touchpad_stats_t
 constexpr float threshold_factor = 1.3;
 constexpr uint64_t threshold_sampling_duration_us = 2 * 1000 * 1000;
 constexpr uint64_t sampling_duration_us = 200 * 1000;
-void run_touch_sensor_thread();
+
+void __time_critical_func(run_touch_sensor_thread)();

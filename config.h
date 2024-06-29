@@ -8,3 +8,6 @@
 #else
 #define IF_SERIAL_LOG(x)
 #endif
+
+
+constexpr bool log_extra_sensor_info = false;

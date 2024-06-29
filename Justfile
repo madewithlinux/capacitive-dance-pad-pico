@@ -20,4 +20,5 @@ build-upload-monitor:
 	picocom /dev/ttyACM0
 
 monitor:
+	while ! test -e /dev/ttyACM0; do sleep 1s; done
 	picocom /dev/ttyACM0

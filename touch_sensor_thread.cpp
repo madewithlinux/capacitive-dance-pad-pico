@@ -9,6 +9,7 @@
 #include "running_stats.hpp"
 #include "touch_sensor_config.hpp"
 #include "touch_sensor_thread.hpp"
+#include "multicore_ipc.h"
 #include "config.h"
 
 #pragma region sensor config
@@ -49,7 +50,7 @@ void init_touch_sensors()
     }
 }
 
-touchpad_stats_t sample_touch_inputs_for_us(uint64_t duration_us)
+touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t duration_us)
 {
     uint64_t end_time = time_us_64() + duration_us;
 
@@ -88,13 +89,17 @@ touchpad_stats_t sample_touch_inputs_for_us(uint64_t duration_us)
     return {by_sensor};
 }
 
-void run_touch_sensor_thread()
+void __time_critical_func(run_touch_sensor_thread)()
 {
     sleep_ms(2000);
+    blink_interval_t blink = BLINK_SENSORS_INIT;
+    queue_add_blocking(&q_blink_interval, &blink);
     init_touch_sensors();
 
+
     IF_SERIAL_LOG(printf("pre-sample threshold values for all touch sensors\n"));
-    // TODO: change LED blink rate to show status
+    blink = BLINK_SENSORS_CALIBRATING;
+    queue_add_blocking(&q_blink_interval, &blink);
     touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us);
     for (int i = 0; i < num_touch_sensors; i++)
     {
@@ -102,79 +107,15 @@ void run_touch_sensor_thread()
     }
 
     IF_SERIAL_LOG(printf("begin reading all 8 PIO touch values\n"));
-    absolute_time_t last_timestamp0 = get_absolute_time();
-    absolute_time_t last_timestamp1 = get_absolute_time();
+    blink = BLINK_SENSORS_OK;
+    queue_add_blocking(&q_blink_interval, &blink);
     while (true)
     {
         touchpad_stats_t stats = sample_touch_inputs_for_us(sampling_duration_us);
-
-        for (int i = 0; i < num_touch_sensors; i++)
-        {
-            if (stats.by_sensor[i].get_total_count() != stats.by_sensor[0].get_total_count())
-            {
-                printf("ERROR: sensor %d count mismatch (%d vs %d)\n", i,
-                       stats.by_sensor[i].get_total_count(),
-                       stats.by_sensor[0].get_total_count());
-            }
+        if (queue_is_full(&q_touchpad_stats)) {
+            touchpad_stats_t dummy;
+            queue_remove_blocking(&q_touchpad_stats, &dummy);
         }
-
-        uint num_samples = stats.by_sensor[0].get_total_count();
-
-        int64_t reporting_time_us = absolute_time_diff_us(last_timestamp0, last_timestamp1);
-        float reporting_freq = ((float)num_samples) / ((float)reporting_time_us / 1.0e6);
-
-        printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | index\n",
-               0.0,
-               1.0,
-               2.0,
-               3.0,
-               4.0,
-               5.0,
-               6.0,
-               7.0);
-        IF_SERIAL_LOG(
-            printf("%6u %6u %6u %6u||%6u %6u %6u %6u | threshold\n",
-                   touch_sensor_thresholds[0],
-                   touch_sensor_thresholds[1],
-                   touch_sensor_thresholds[2],
-                   touch_sensor_thresholds[3],
-                   touch_sensor_thresholds[4],
-                   touch_sensor_thresholds[5],
-                   touch_sensor_thresholds[6],
-                   touch_sensor_thresholds[7]));
-
-        printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | pins\n",
-               (float)touch_sensor_configs[0].pin,
-               (float)touch_sensor_configs[1].pin,
-               (float)touch_sensor_configs[2].pin,
-               (float)touch_sensor_configs[3].pin,
-               (float)touch_sensor_configs[4].pin,
-               (float)touch_sensor_configs[5].pin,
-               (float)touch_sensor_configs[6].pin,
-               (float)touch_sensor_configs[7].pin);
-        printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | above threshold\n",
-               stats.by_sensor[0].is_above_threshold() * 111.0,
-               stats.by_sensor[1].is_above_threshold() * 111.0,
-               stats.by_sensor[2].is_above_threshold() * 111.0,
-               stats.by_sensor[3].is_above_threshold() * 111.0,
-               stats.by_sensor[4].is_above_threshold() * 111.0,
-               stats.by_sensor[5].is_above_threshold() * 111.0,
-               stats.by_sensor[6].is_above_threshold() * 111.0,
-               stats.by_sensor[7].is_above_threshold() * 111.0);
-        printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | %d, %5.0f Hz\n",
-               stats.by_sensor[0].get_mean_float(),
-               stats.by_sensor[1].get_mean_float(),
-               stats.by_sensor[2].get_mean_float(),
-               stats.by_sensor[3].get_mean_float(),
-               stats.by_sensor[4].get_mean_float(),
-               stats.by_sensor[5].get_mean_float(),
-               stats.by_sensor[6].get_mean_float(),
-               stats.by_sensor[7].get_mean_float(),
-               reporting_time_us,
-               reporting_freq);
-        puts("\n");
-
-        last_timestamp0 = last_timestamp1;
-        last_timestamp1 = get_absolute_time();
+        queue_add_blocking(&q_touchpad_stats, &stats);
     }
 }

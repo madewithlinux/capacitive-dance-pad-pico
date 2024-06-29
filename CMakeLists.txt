@@ -42,6 +42,7 @@ pico_sdk_init()
 add_executable(capacitive-dance-pad-pico
   capacitive-dance-pad-pico.cpp
   touch_sensor_thread.cpp
+  multicore_ipc.cpp
   usb_descriptors.c
   reset_interface.c
   tusb_config.h
@@ -91,4 +92,12 @@ target_link_libraries(capacitive-dance-pad-pico
         )
 
 pico_add_extra_outputs(capacitive-dance-pad-pico)
+
+add_compile_options(-Wall
+        -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
+        -Wno-unused-function # we have some for the docs that aren't called
+        )
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-Wno-maybe-uninitialized)
+endif()
 
