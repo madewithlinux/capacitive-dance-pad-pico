@@ -11,6 +11,7 @@ build:
 
 build-clean:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build clean
+	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
 
 build-upload-monitor:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
@@ -22,3 +23,6 @@ build-upload-monitor:
 monitor:
 	while ! test -e /dev/ttyACM0; do sleep 1s; done
 	picocom /dev/ttyACM0
+
+lsusb:
+	sudo lsusb -d cafe:4016 -v > lsusb_output.log
