@@ -22,10 +22,19 @@ static blink_interval_t blink_interval_ms = BLINK_INIT;
 
 // TODO: some way to make these dependent on which player it is
 static uint8_t game_button_to_keycode_map[NUM_GAME_BUTTONS] = {
+#if PLAYER_NUMBER == 1
     [UP] = HID_KEY_ARROW_UP,
     [DOWN] = HID_KEY_ARROW_DOWN,
     [LEFT] = HID_KEY_ARROW_LEFT,
     [RIGHT] = HID_KEY_ARROW_RIGHT,
+#elif PLAYER_NUMBER == 2
+    [UP] = HID_KEY_KEYPAD_8,
+    [DOWN] = HID_KEY_KEYPAD_2,
+    [LEFT] = HID_KEY_KEYPAD_4,
+    [RIGHT] = HID_KEY_KEYPAD_6,
+#else
+#error "invalid PLAYER_NUMBER"
+#endif
 };
 
 static uint8_t hid_report_keycodes[6] = {0};
@@ -172,7 +181,35 @@ void touch_stats_handler_task()
     }
     hid_report_dirty = true;
 
-    log_stats(stats);
+#if SERIAL_TELEPLOT
+
+    static uint64_t last_teleplot_report_us = time_us_64();
+    if (time_us_64() - last_teleplot_report_us > SERIAL_TELEPLOT_REPORT_INTERVAL_US)
+    {
+
+        last_teleplot_report_us += SERIAL_TELEPLOT_REPORT_INTERVAL_US;
+
+        // printf(">UP:%s|t\n", active_game_buttons_map[UP] ? "UP" : "");
+        // printf(">DOWN:%s|t\n", active_game_buttons_map[DOWN] ? "DOWN" : "");
+        // printf(">LEFT:%s|t\n", active_game_buttons_map[LEFT] ? "LEFT" : "");
+        // printf(">RIGHT:%s|t\n", active_game_buttons_map[RIGHT] ? "RIGHT" : "");
+        puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
+        puts(active_game_buttons_map[DOWN] ? ">DOWN:DOWN|t" : ">DOWN:.|t");
+        puts(active_game_buttons_map[LEFT] ? ">LEFT:LEFT|t" : ">LEFT:.|t");
+        puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t" : ">RIGHT:.|t");
+
+        for (int i = 0; i < num_touch_sensors; i++)
+        {
+            printf(">t%d,s:%.3f\n",
+                   i,
+                   (stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i] / threshold_factor) / touch_sensor_thresholds[i]);
+            //    stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i]);
+        }
+        // puts("");
+    }
+#else
+    IF_SERIAL_LOG(log_stats(stats));
+#endif
 }
 
 //--------------------------------------------------------------------+
@@ -220,7 +257,8 @@ void hid_task(void)
         tud_remote_wakeup();
     }
 
-    if (!hid_report_dirty) {
+    if (!hid_report_dirty)
+    {
         return;
     }
 

@@ -50,7 +50,7 @@ struct touchpad_stats_t
 };
 
 
-constexpr float threshold_factor = 1.3;
+constexpr float threshold_factor = 2.0;
 constexpr uint64_t threshold_sampling_duration_us = 2 * 1000 * 1000;
 // constexpr uint64_t sampling_duration_us = 200 * 1000;
 constexpr uint64_t sampling_duration_us = 1 * 1000;
