@@ -47,7 +47,7 @@ public:
 
     inline bool is_above_threshold() const
     {
-        return count_above_threshold > count_below_threshold;
+        return count_above_threshold >= count_below_threshold;
     }
 
     inline void reset()

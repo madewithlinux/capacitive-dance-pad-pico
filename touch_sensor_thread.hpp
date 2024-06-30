@@ -3,6 +3,7 @@
 #include "touch_sensor_config.hpp"
 #include "running_stats.hpp"
 
+// TODO: move these to touch_sensor_config.hpp?
 constexpr touch_sensor_config_t touch_sensor_configs[] = {
     // clang-format off
     // - A B -
@@ -51,6 +52,7 @@ struct touchpad_stats_t
 
 constexpr float threshold_factor = 1.3;
 constexpr uint64_t threshold_sampling_duration_us = 2 * 1000 * 1000;
-constexpr uint64_t sampling_duration_us = 200 * 1000;
+// constexpr uint64_t sampling_duration_us = 200 * 1000;
+constexpr uint64_t sampling_duration_us = 1 * 1000;
 
 void __time_critical_func(run_touch_sensor_thread)();
