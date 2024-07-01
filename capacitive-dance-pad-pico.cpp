@@ -1,3 +1,6 @@
+// #include <fmt/core.h>
+// #include <fmt/format.h>
+
 #include <stdio.h>
 #include <array>
 #include <numeric>
@@ -16,6 +19,7 @@
 #include "usb_descriptors.h"
 
 #include "config.h"
+#include "custom_logging.hpp"
 #include "touch.pio.h"
 
 static blink_interval_t blink_interval_ms = BLINK_INIT;
@@ -178,23 +182,23 @@ void teleplot_task(void) {
   if (time_us_64() - last_teleplot_report_us >
       SERIAL_TELEPLOT_REPORT_INTERVAL_US) {
     last_teleplot_report_us += SERIAL_TELEPLOT_REPORT_INTERVAL_US;
+    if (!teleplot_is_connected()) {
+      return;
+    }
 
-    // printf(">UP:%s|t\n", active_game_buttons_map[UP] ? "UP" : "");
-    // printf(">DOWN:%s|t\n", active_game_buttons_map[DOWN] ? "DOWN" : "");
-    // printf(">LEFT:%s|t\n", active_game_buttons_map[LEFT] ? "LEFT" : "");
-    // printf(">RIGHT:%s|t\n", active_game_buttons_map[RIGHT] ? "RIGHT" : "");
-    puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
-    puts(active_game_buttons_map[DOWN] ? ">DOWN:DOWN|t" : ">DOWN:.|t");
-    puts(active_game_buttons_map[LEFT] ? ">LEFT:LEFT|t" : ">LEFT:.|t");
-    puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t" : ">RIGHT:.|t");
+    teleplot_puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
+    teleplot_puts(active_game_buttons_map[DOWN] ? ">DOWN:DOWN|t" : ">DOWN:.|t");
+    teleplot_puts(active_game_buttons_map[LEFT] ? ">LEFT:LEFT|t" : ">LEFT:.|t");
+    teleplot_puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t"
+                                                 : ">RIGHT:.|t");
 
     for (int i = 0; i < num_touch_sensors; i++) {
-      printf(">t%d,s:%.3f\n", i,
-             (stats.by_sensor[i].get_mean_float() -
-              touch_sensor_thresholds[i] / threshold_factor) /
-                 touch_sensor_thresholds[i]);
-      //    stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i]);
+      float normalized = (stats.by_sensor[i].get_mean_float() -
+                          touch_sensor_thresholds[i] / threshold_factor) /
+                         touch_sensor_thresholds[i];
+      teleplot_printf(">t%d,s:%.3f\r\n", i, normalized);
     }
+    teleplot_flush();
   }
 #else
   IF_SERIAL_LOG(log_stats(stats));

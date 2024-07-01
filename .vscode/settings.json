@@ -48,6 +48,10 @@
         "*.ipxe": "shellscript",
         "array": "cpp",
         "stdio_usb.h": "c",
-        "tusb.h": "c"
-    }
+        "tusb.h": "c",
+        "*.tcc": "cpp",
+        "format": "cpp",
+        "sstream": "cpp"
+    },
+    "editor.tabSize": 2
 }

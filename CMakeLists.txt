@@ -42,6 +42,7 @@ pico_sdk_init()
 add_executable(capacitive-dance-pad-pico
   capacitive-dance-pad-pico.cpp
   touch_sensor_thread.cpp
+  custom_logging.cpp
   multicore_ipc.cpp
   usb_descriptors.c
   reset_interface.c
@@ -101,3 +102,16 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     add_compile_options(-Wno-maybe-uninitialized)
 endif()
 
+
+# turns out fmt doesn't work well, seems to crash the microcontroller (maybe due to running out of memory?)
+# ############ fmt
+# include(FetchContent)
+
+# FetchContent_Declare(
+#   fmt
+#   GIT_REPOSITORY https://github.com/fmtlib/fmt
+#   GIT_TAG        e69e5f977d458f2650bb346dadf2ad30c5320281) # 10.2.1
+# FetchContent_MakeAvailable(fmt)
+
+# # target_link_libraries(capacitive-dance-pad-pico fmt::fmt)
+# target_link_libraries(capacitive-dance-pad-pico fmt::fmt-header-only)
