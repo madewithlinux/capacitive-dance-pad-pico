@@ -18,7 +18,7 @@
 #include "tusb.h"
 #include "usb_descriptors.h"
 
-#include "config.h"
+#include "config_defines.h"
 #include "custom_logging.hpp"
 #include "serial_config_console.hpp"
 #include "touch.pio.h"
@@ -342,6 +342,9 @@ void webserial_task(void) {
 //--------------------------------------------------------------------+
 
 void hid_task(void) {
+  if (!usb_hid_enabled) {
+    return;
+  }
   // Remote wakeup
   if (tud_suspended()) {
     // Wake up host if we are in suspend mode

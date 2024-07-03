@@ -5,7 +5,7 @@
 #include "pico/multicore.h"
 #include "pico/stdlib.h"
 
-#include "config.h"
+#include "config_defines.h"
 #include "multicore_ipc.h"
 #include "running_stats.hpp"
 #include "touch.pio.h"

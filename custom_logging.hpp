@@ -1,7 +1,7 @@
 #pragma once
 #include "pico/stdlib.h"
 
-#include "config.h"
+#include "config_defines.h"
 
 #define CDC_SERIAL0_ITF (0)
 #define CDC_SERIAL1_ITF (1)
