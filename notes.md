@@ -21,3 +21,6 @@ G - - D
 | << Left  |      G |   8 |     0 |   0 |  0 |
 | << Left  |      H |   9 |     4 |   1 |  0 |
 
+
+# config serial
+set threshold_factor 2.0

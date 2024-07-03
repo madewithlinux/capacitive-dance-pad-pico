@@ -22,7 +22,10 @@ constexpr bool log_extra_sensor_info = false;
 #define PLAYER_NUMBER 2
 #endif
 
-#define SERIAL_TELEPLOT_REPORT_INTERVAL_US (20 * 1000)
-
 // #define SERIAL_TELEPLOT 0
 #define SERIAL_TELEPLOT 1
+
+#ifndef SERIAL_CONFIG_CONSOLE
+#define SERIAL_CONFIG_CONSOLE 1
+#define SERIAL_CONFIG_CONSOLE_INTERFACE CDC_SERIAL0_ITF
+#endif

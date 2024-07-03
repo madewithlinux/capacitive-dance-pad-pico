@@ -20,6 +20,7 @@
 
 #include "config.h"
 #include "custom_logging.hpp"
+#include "serial_config_console.hpp"
 #include "touch.pio.h"
 
 static blink_interval_t blink_interval_ms = BLINK_INIT;
@@ -74,6 +75,7 @@ int main() {
     touch_stats_handler_task();
     hid_task();
     webserial_task();
+    serial_console_task();
     led_blinking_task();
     teleplot_task();
   }
@@ -180,8 +182,8 @@ void teleplot_task(void) {
 
   static uint64_t last_teleplot_report_us = time_us_64();
   if (time_us_64() - last_teleplot_report_us >
-      SERIAL_TELEPLOT_REPORT_INTERVAL_US) {
-    last_teleplot_report_us += SERIAL_TELEPLOT_REPORT_INTERVAL_US;
+      serial_teleplot_report_interval_us) {
+    last_teleplot_report_us += serial_teleplot_report_interval_us;
     if (!teleplot_is_connected()) {
       return;
     }

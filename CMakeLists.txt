@@ -43,6 +43,7 @@ add_executable(capacitive-dance-pad-pico
   capacitive-dance-pad-pico.cpp
   touch_sensor_thread.cpp
   custom_logging.cpp
+  serial_config_console.cpp
   multicore_ipc.cpp
   usb_descriptors.c
   reset_interface.c

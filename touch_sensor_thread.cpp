@@ -11,6 +11,7 @@
 #include "touch.pio.h"
 #include "touch_sensor_config.hpp"
 #include "touch_sensor_thread.hpp"
+#include "serial_config_console.hpp"
 
 #pragma region sensor config
 
