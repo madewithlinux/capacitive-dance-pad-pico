@@ -6,12 +6,16 @@
 #include "config_defines.h"
 #include "custom_logging.hpp"
 #include "serial_config_console.hpp"
+#include "touch_sensor_config.hpp"
+#include "touch_sensor_thread.hpp"
 
 float threshold_factor = 1.5;
 uint64_t threshold_sampling_duration_us = 2 * 1000 * 1000;
 uint64_t sampling_duration_us = 1 * 1000;
 uint64_t serial_teleplot_report_interval_us = 20 * 1000;
+int filter_type = FILTER_TYPE_MEDIAN;
 bool usb_hid_enabled = true;
+float iir_filter_b = 0.8;
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
@@ -19,6 +23,8 @@ static config_console_value config_values[] = {
     {"sampling_duration_us", &sampling_duration_us},
     {"serial_teleplot_report_interval_us", &serial_teleplot_report_interval_us},
     {"usb_hid_enabled", &usb_hid_enabled},
+    {"filter_type", &filter_type},
+    {"iir_filter_b", &iir_filter_b},
 };
 
 // #if SERIAL_CONFIG_CONSOLE
@@ -41,6 +47,10 @@ void serial_console_task(void) {
         config_values[i].print_config_line(itf);
       }
       tud_cdc_n_write_str(itf, "\r\n");
+    } else if (line_buf.rfind("touch_sensor_thresholds") == 0) {
+      for (int i = 0; i < num_touch_sensors; i++) {
+        CDC_PRINTF(itf, "touch_sensor_thresholds[%i] = %i\r\n", i, touch_sensor_thresholds[i]);
+      }
     } else if (line_buf.rfind("set ") == 0) {
       char name_buf[128] = {0};
       char value_buf[128] = {0};

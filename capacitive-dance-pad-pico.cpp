@@ -49,11 +49,10 @@ static touchpad_stats_t stats;
 
 #define URL "example.tinyusb.org/webusb-serial/index.html"
 
-const tusb_desc_webusb_url_t desc_url = {
-    .bLength = 3 + sizeof(URL) - 1,
-    .bDescriptorType = 3,  // WEBUSB URL type
-    .bScheme = 1,          // 0: http, 1: https
-    .url = URL};
+const tusb_desc_webusb_url_t desc_url = {.bLength = 3 + sizeof(URL) - 1,
+                                         .bDescriptorType = 3,  // WEBUSB URL type
+                                         .bScheme = 1,          // 0: http, 1: https
+                                         .url = URL};
 
 static bool web_serial_connected = false;
 
@@ -86,60 +85,43 @@ void log_stats(touchpad_stats_t& stats) {
   static absolute_time_t last_timestamp1 = get_absolute_time();
 
   for (int i = 0; i < num_touch_sensors; i++) {
-    if (stats.by_sensor[i].get_total_count() !=
-        stats.by_sensor[0].get_total_count()) {
-      printf("ERROR: sensor %d count mismatch (%d vs %d)\n", i,
-             stats.by_sensor[i].get_total_count(),
+    if (stats.by_sensor[i].get_total_count() != stats.by_sensor[0].get_total_count()) {
+      printf("ERROR: sensor %d count mismatch (%d vs %d)\n", i, stats.by_sensor[i].get_total_count(),
              stats.by_sensor[0].get_total_count());
     }
   }
 
   uint num_samples = stats.by_sensor[0].get_total_count();
 
-  int64_t reporting_time_us =
-      absolute_time_diff_us(last_timestamp0, last_timestamp1);
-  float reporting_freq =
-      ((float)num_samples) / ((float)reporting_time_us / 1.0e6);
+  int64_t reporting_time_us = absolute_time_diff_us(last_timestamp0, last_timestamp1);
+  float reporting_freq = ((float)num_samples) / ((float)reporting_time_us / 1.0e6);
 
   if (log_extra_sensor_info) {
-    printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | index\n", 0.0,
-           1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
+    printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | index\n", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
     IF_SERIAL_LOG(
-        printf("%6u %6u %6u %6u||%6u %6u %6u %6u | threshold\n",
-               touch_sensor_thresholds[0], touch_sensor_thresholds[1],
-               touch_sensor_thresholds[2], touch_sensor_thresholds[3],
-               touch_sensor_thresholds[4], touch_sensor_thresholds[5],
-               touch_sensor_thresholds[6], touch_sensor_thresholds[7]);
+        printf("%6u %6u %6u %6u||%6u %6u %6u %6u | threshold\n", touch_sensor_thresholds[0], touch_sensor_thresholds[1],
+               touch_sensor_thresholds[2], touch_sensor_thresholds[3], touch_sensor_thresholds[4],
+               touch_sensor_thresholds[5], touch_sensor_thresholds[6], touch_sensor_thresholds[7]);
 
-        printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | pins\n",
-               (float)touch_sensor_configs[0].pin,
-               (float)touch_sensor_configs[1].pin,
-               (float)touch_sensor_configs[2].pin,
-               (float)touch_sensor_configs[3].pin,
-               (float)touch_sensor_configs[4].pin,
-               (float)touch_sensor_configs[5].pin,
-               (float)touch_sensor_configs[6].pin,
+        printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | pins\n", (float)touch_sensor_configs[0].pin,
+               (float)touch_sensor_configs[1].pin, (float)touch_sensor_configs[2].pin,
+               (float)touch_sensor_configs[3].pin, (float)touch_sensor_configs[4].pin,
+               (float)touch_sensor_configs[5].pin, (float)touch_sensor_configs[6].pin,
                (float)touch_sensor_configs[7].pin);
         printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | above "
                "threshold\n",
-               stats.by_sensor[0].is_above_threshold() * 111.0,
-               stats.by_sensor[1].is_above_threshold() * 111.0,
-               stats.by_sensor[2].is_above_threshold() * 111.0,
-               stats.by_sensor[3].is_above_threshold() * 111.0,
-               stats.by_sensor[4].is_above_threshold() * 111.0,
-               stats.by_sensor[5].is_above_threshold() * 111.0,
-               stats.by_sensor[6].is_above_threshold() * 111.0,
-               stats.by_sensor[7].is_above_threshold() * 111.0);
+               stats.by_sensor[0].is_above_threshold() * 111.0, stats.by_sensor[1].is_above_threshold() * 111.0,
+               stats.by_sensor[2].is_above_threshold() * 111.0, stats.by_sensor[3].is_above_threshold() * 111.0,
+               stats.by_sensor[4].is_above_threshold() * 111.0, stats.by_sensor[5].is_above_threshold() * 111.0,
+               stats.by_sensor[6].is_above_threshold() * 111.0, stats.by_sensor[7].is_above_threshold() * 111.0);
         //
     )
   }
   IF_SERIAL_LOG(printf(
-      "%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | %d, %5.0f Hz\n",
-      stats.by_sensor[0].get_mean_float(), stats.by_sensor[1].get_mean_float(),
-      stats.by_sensor[2].get_mean_float(), stats.by_sensor[3].get_mean_float(),
-      stats.by_sensor[4].get_mean_float(), stats.by_sensor[5].get_mean_float(),
-      stats.by_sensor[6].get_mean_float(), stats.by_sensor[7].get_mean_float(),
-      reporting_time_us, reporting_freq));
+      "%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | %d, %5.0f Hz\n", stats.by_sensor[0].get_mean_float(),
+      stats.by_sensor[1].get_mean_float(), stats.by_sensor[2].get_mean_float(), stats.by_sensor[3].get_mean_float(),
+      stats.by_sensor[4].get_mean_float(), stats.by_sensor[5].get_mean_float(), stats.by_sensor[6].get_mean_float(),
+      stats.by_sensor[7].get_mean_float(), reporting_time_us, reporting_freq));
   if (log_extra_sensor_info) {
     puts("\n");
   }
@@ -160,8 +142,26 @@ void touch_stats_handler_task() {
 
   memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
   for (int i = 0; i < num_touch_sensors; i++) {
-    if (stats.by_sensor[i].is_above_threshold()) {
-      active_game_buttons_map[touch_sensor_configs[i].button] = true;
+    switch (filter_type) {
+      case FILTER_TYPE_MEDIAN:
+        if (stats.by_sensor[i].median_is_above_threshold()) {
+          active_game_buttons_map[touch_sensor_configs[i].button] = true;
+        }
+        break;
+      case FILTER_TYPE_AVG:
+        if (stats.by_sensor[i].avg_is_above_threshold()) {
+          active_game_buttons_map[touch_sensor_configs[i].button] = true;
+        }
+        break;
+      case FILTER_TYPE_IIR:
+        if (stats.by_sensor[i].iir_is_above_threshold()) {
+          active_game_buttons_map[touch_sensor_configs[i].button] = true;
+        }
+        break;
+
+      default:
+        // TODO invalid value
+        break;
     }
   }
 
@@ -181,8 +181,7 @@ void teleplot_task(void) {
 #if SERIAL_TELEPLOT
 
   static uint64_t last_teleplot_report_us = time_us_64();
-  if (time_us_64() - last_teleplot_report_us >
-      serial_teleplot_report_interval_us) {
+  if (time_us_64() - last_teleplot_report_us > serial_teleplot_report_interval_us) {
     last_teleplot_report_us += serial_teleplot_report_interval_us;
     if (!teleplot_is_connected()) {
       return;
@@ -191,14 +190,22 @@ void teleplot_task(void) {
     teleplot_puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
     teleplot_puts(active_game_buttons_map[DOWN] ? ">DOWN:DOWN|t" : ">DOWN:.|t");
     teleplot_puts(active_game_buttons_map[LEFT] ? ">LEFT:LEFT|t" : ">LEFT:.|t");
-    teleplot_puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t"
-                                                 : ">RIGHT:.|t");
+    teleplot_puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t" : ">RIGHT:.|t");
 
     for (int i = 0; i < num_touch_sensors; i++) {
-      float normalized = (stats.by_sensor[i].get_mean_float() -
-                          touch_sensor_thresholds[i] / threshold_factor) /
+      float normalized = (stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i] / threshold_factor) /
                          touch_sensor_thresholds[i];
       teleplot_printf(">t%d,s:%.3f\r\n", i, normalized);
+    }
+    teleplot_puts(">b,s:0.5");
+
+    // single extra value just for testing
+    {
+      teleplot_printf(">thresh,f:%i\r\n", touch_sensor_thresholds[6]);
+      teleplot_printf(">mean,f:%.3f\r\n",
+                      stats.by_sensor[6].median_is_above_threshold() * 2.0 * touch_sensor_thresholds[6]);
+      teleplot_printf(">avg,f:%.3f\r\n", stats.by_sensor[6].get_mean_float());
+      teleplot_printf(">iir,f:%.3f\r\n", stats.by_sensor[6].get_iir_filtered_value());
     }
     teleplot_flush();
   }
@@ -242,9 +249,7 @@ void tud_resume_cb(void) {
 // Driver response accordingly to the request and the transfer stage
 // (setup/data/ack) return false to stall control endpoint (e.g unsupported
 // request)
-bool tud_vendor_control_xfer_cb(uint8_t rhport,
-                                uint8_t stage,
-                                tusb_control_request_t const* request) {
+bool tud_vendor_control_xfer_cb(uint8_t rhport, uint8_t stage, tusb_control_request_t const* request) {
   // nothing to with DATA & ACK stage
   if (stage != CONTROL_STAGE_SETUP)
     return true;
@@ -255,8 +260,7 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport,
         case VENDOR_REQUEST_WEBUSB:
           // match vendor request in BOS descriptor
           // Get landing page url
-          return tud_control_xfer(rhport, request, (void*)(uintptr_t)&desc_url,
-                                  desc_url.bLength);
+          return tud_control_xfer(rhport, request, (void*)(uintptr_t)&desc_url, desc_url.bLength);
 
         case VENDOR_REQUEST_MICROSOFT:
           if (request->wIndex == 7) {
@@ -264,8 +268,7 @@ bool tud_vendor_control_xfer_cb(uint8_t rhport,
             uint16_t total_len;
             memcpy(&total_len, desc_ms_os_20 + 8, 2);
 
-            return tud_control_xfer(rhport, request,
-                                    (void*)(uintptr_t)desc_ms_os_20, total_len);
+            return tud_control_xfer(rhport, request, (void*)(uintptr_t)desc_ms_os_20, total_len);
           } else {
             return false;
           }

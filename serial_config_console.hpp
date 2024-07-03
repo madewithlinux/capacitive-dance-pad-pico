@@ -1,16 +1,10 @@
 #pragma once
 #include <string>
+#include "config_values.hpp"
 
 bool read_line_into_string(uint8_t itf, std::string& line_buf, bool echo_mid_line = true);
 
 void serial_console_task(void);
-
-// config values:
-extern float threshold_factor;
-extern uint64_t threshold_sampling_duration_us;
-extern uint64_t sampling_duration_us;
-extern uint64_t serial_teleplot_report_interval_us;
-extern bool usb_hid_enabled;
 
 struct config_console_value {
   const std::string name;
