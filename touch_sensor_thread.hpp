@@ -5,6 +5,9 @@
 
 extern uint16_t touch_sensor_thresholds[num_touch_sensors];
 
+// for deriving the sampling rate
+extern uint32_t touch_sample_count;
+
 struct touchpad_stats_t {
   const std::array<running_stats, num_touch_sensors> by_sensor;
 };

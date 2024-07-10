@@ -23,8 +23,10 @@ G - - D
 
 
 # config serial
+```
 set threshold_factor 2.0
 set usb_hid_enabled 0
 set filter_type 0
 set filter_type 1
 set filter_type 2
+```

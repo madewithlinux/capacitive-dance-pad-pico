@@ -181,10 +181,18 @@ void teleplot_task(void) {
 #if SERIAL_TELEPLOT
 
   static uint64_t last_teleplot_report_us = time_us_64();
+  static uint32_t last_touch_sample_count = 0;
   if (time_us_64() - last_teleplot_report_us > serial_teleplot_report_interval_us) {
     last_teleplot_report_us += serial_teleplot_report_interval_us;
     if (!teleplot_is_connected()) {
       return;
+    }
+
+    if (touch_sample_count > 0) {
+      float touch_sample_rate =
+          (touch_sample_count - last_touch_sample_count) / ((float)serial_teleplot_report_interval_us * 1.0e-6);
+      teleplot_printf(">r:%.3f\r\n", touch_sample_rate);
+      teleplot_printf(">s:%d\r\n", touch_sample_count - last_touch_sample_count);
     }
 
     teleplot_puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
@@ -193,21 +201,28 @@ void teleplot_task(void) {
     teleplot_puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t" : ">RIGHT:.|t");
 
     for (int i = 0; i < num_touch_sensors; i++) {
-      float normalized = (stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i] / threshold_factor) /
-                         touch_sensor_thresholds[i];
-      teleplot_printf(">t%d,s:%.3f\r\n", i, normalized);
+      float val;
+      if (teleplot_normalize_values) {
+        val = (stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i] / threshold_factor) /
+              touch_sensor_thresholds[i];
+      } else {
+        val = stats.by_sensor[i].get_mean_float();
+      }
+      teleplot_printf(">t%d,s:%.3f\r\n", i, val);
     }
-    teleplot_puts(">b,s:0.5");
+    // teleplot_puts(">b,s:0.5");
 
-    // single extra value just for testing
-    {
-      teleplot_printf(">thresh,f:%i\r\n", touch_sensor_thresholds[6]);
-      teleplot_printf(">mean,f:%.3f\r\n",
-                      stats.by_sensor[6].median_is_above_threshold() * 2.0 * touch_sensor_thresholds[6]);
-      teleplot_printf(">avg,f:%.3f\r\n", stats.by_sensor[6].get_mean_float());
-      teleplot_printf(">iir,f:%.3f\r\n", stats.by_sensor[6].get_iir_filtered_value());
-    }
+    // // single extra value just for testing
+    // {
+    //   teleplot_printf(">thresh,f:%i\r\n", touch_sensor_thresholds[6]);
+    //   teleplot_printf(">mean,f:%.3f\r\n",
+    //                   stats.by_sensor[6].median_is_above_threshold() * 2.0 * touch_sensor_thresholds[6]);
+    //   teleplot_printf(">avg,f:%.3f\r\n", stats.by_sensor[6].get_mean_float());
+    //   teleplot_printf(">iir,f:%.3f\r\n", stats.by_sensor[6].get_iir_filtered_value());
+    // }
+
     teleplot_flush();
+    last_touch_sample_count = touch_sample_count;
   }
 #else
   IF_SERIAL_LOG(log_stats(stats));

@@ -13,3 +13,11 @@ extern float iir_filter_b;
 #define FILTER_TYPE_MEDIAN 0
 #define FILTER_TYPE_AVG 1
 #define FILTER_TYPE_IIR 2
+
+// TODO: make these config values
+
+// #define teleplot_normalize_values (1)
+#define teleplot_normalize_values (0)
+
+// value subtracted from sampling_duration_us to account for processing time
+#define sampling_buffer_time_us (100)

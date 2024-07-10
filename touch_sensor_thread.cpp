@@ -8,16 +8,17 @@
 #include "config_defines.h"
 #include "multicore_ipc.h"
 #include "running_stats.hpp"
+#include "serial_config_console.hpp"
 #include "touch.pio.h"
 #include "touch_sensor_config.hpp"
 #include "touch_sensor_thread.hpp"
-#include "serial_config_console.hpp"
 
 #pragma region sensor config
 
 // NOTE: THIS IS MUTABLE
-uint16_t touch_sensor_thresholds[num_touch_sensors] = {200, 200, 200, 200,
-                                                       200, 200, 200, 200};
+uint16_t touch_sensor_thresholds[num_touch_sensors] = {200, 200, 200, 200, 200, 200, 200, 200};
+
+uint32_t touch_sample_count = 0;
 
 #pragma endregion sensor config
 
@@ -43,16 +44,13 @@ void init_touch_sensors() {
     touch_program_init(pio, cfg.sm, offset, cfg.pin);
     pio_sm_set_enabled(pio, cfg.sm, true);
 
-    pio_set_irq0_source_enabled(
-        pio, (enum pio_interrupt_source)((uint)pis_interrupt0 + cfg.sm), false);
-    pio_set_irq1_source_enabled(
-        pio, (enum pio_interrupt_source)((uint)pis_interrupt0 + cfg.sm), false);
+    pio_set_irq0_source_enabled(pio, (enum pio_interrupt_source)((uint)pis_interrupt0 + cfg.sm), false);
+    pio_set_irq1_source_enabled(pio, (enum pio_interrupt_source)((uint)pis_interrupt0 + cfg.sm), false);
   }
 }
 
-touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(
-    uint64_t duration_us) {
-  uint64_t end_time = time_us_64() + duration_us;
+touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t duration_us) {
+  uint64_t end_time = time_us_64() + duration_us - sampling_buffer_time_us;
 
   // just allocate all of them and assume that's ok
   running_stats stats_by_pio_sm[NUM_PIOS][NUM_PIO_STATE_MACHINES];
@@ -75,6 +73,7 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(
       }
       pio_interrupt_clear(pio, 0);
     }
+    touch_sample_count++;
   }
   std::array<running_stats, num_touch_sensors> by_sensor;
   for (int i = 0; i < num_touch_sensors; i++) {
@@ -93,11 +92,9 @@ void __time_critical_func(run_touch_sensor_thread)() {
   IF_SERIAL_LOG(printf("pre-sample threshold values for all touch sensors\n"));
   blink = BLINK_SENSORS_CALIBRATING;
   queue_add_blocking(&q_blink_interval, &blink);
-  touchpad_stats_t stats =
-      sample_touch_inputs_for_us(threshold_sampling_duration_us);
+  touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us);
   for (int i = 0; i < num_touch_sensors; i++) {
-    touch_sensor_thresholds[i] =
-        uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
+    touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
   }
 
   IF_SERIAL_LOG(printf("begin reading all 8 PIO touch values\n"));
