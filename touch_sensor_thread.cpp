@@ -49,7 +49,7 @@ void init_touch_sensors() {
   }
 }
 
-touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t duration_us) {
+touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t duration_us, bool init = false) {
   uint64_t end_time = time_us_64() + duration_us - sampling_buffer_time_us;
 
   // just allocate all of them and assume that's ok
@@ -69,11 +69,19 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
       for (int i = 0; i < num_touch_sensors / 2; i++) {
         touch_sensor_config_t cfg = touch_sensors_by_pio[pio_idx][i];
         int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio, cfg.sm);
+#if TOUCH_SINGLE_SAMPLE_DEBUG
+        if (stats_by_pio_sm[cfg.pio_idx][cfg.sm].get_total_count() == 0) {
+          stats_by_pio_sm[cfg.pio_idx][cfg.sm].add_value(value);
+        }
+#else
         stats_by_pio_sm[cfg.pio_idx][cfg.sm].add_value(value);
+#endif
       }
       pio_interrupt_clear(pio, 0);
     }
-    touch_sample_count++;
+    if (!init) {
+      touch_sample_count++;
+    }
   }
   std::array<running_stats, num_touch_sensors> by_sensor;
   for (int i = 0; i < num_touch_sensors; i++) {
@@ -92,7 +100,7 @@ void __time_critical_func(run_touch_sensor_thread)() {
   IF_SERIAL_LOG(printf("pre-sample threshold values for all touch sensors\n"));
   blink = BLINK_SENSORS_CALIBRATING;
   queue_add_blocking(&q_blink_interval, &blink);
-  touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us);
+  touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us, /*init=*/true);
   for (int i = 0; i < num_touch_sensors; i++) {
     touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
   }

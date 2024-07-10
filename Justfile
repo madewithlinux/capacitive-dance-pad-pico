@@ -1,3 +1,6 @@
+dfu:
+	test -e /dev/ttyACM0
+	picocom -b 1200 /dev/ttyACM0 || true
 
 upload:
 	(test -e /dev/ttyACM0 && picocom -b 1200 /dev/ttyACM0) || true
