@@ -28,15 +28,29 @@ static blink_interval_t blink_interval_ms = BLINK_INIT;
 // TODO: some way to make these dependent on which player it is
 static uint8_t game_button_to_keycode_map[NUM_GAME_BUTTONS] = {
 #if PLAYER_NUMBER == 1
+    // DDR/ITG
     [UP] = HID_KEY_ARROW_UP,
     [DOWN] = HID_KEY_ARROW_DOWN,
     [LEFT] = HID_KEY_ARROW_LEFT,
     [RIGHT] = HID_KEY_ARROW_RIGHT,
+    // pump
+    [MIDDLE] = HID_KEY_S,
+    [UP_LEFT] = HID_KEY_Q,
+    [UP_RIGHT] = HID_KEY_E,
+    [DOWN_LEFT] = HID_KEY_Z,
+    [DOWN_RIGHT] = HID_KEY_C,
 #elif PLAYER_NUMBER == 2
+    // DDR/ITG
     [UP] = HID_KEY_KEYPAD_8,
     [DOWN] = HID_KEY_KEYPAD_2,
     [LEFT] = HID_KEY_KEYPAD_4,
     [RIGHT] = HID_KEY_KEYPAD_6,
+    // pump
+    [MIDDLE] = HID_KEY_KEYPAD_5,
+    [UP_LEFT] = HID_KEY_KEYPAD_7,
+    [UP_RIGHT] = HID_KEY_KEYPAD_9,
+    [DOWN_LEFT] = HID_KEY_KEYPAD_1,
+    [DOWN_RIGHT] = HID_KEY_KEYPAD_3,
 #else
 #error "invalid PLAYER_NUMBER"
 #endif
@@ -195,10 +209,18 @@ void teleplot_task(void) {
       teleplot_printf(">s:%d\r\n", touch_sample_count - last_touch_sample_count);
     }
 
+#if TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_ITG
     teleplot_puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
     teleplot_puts(active_game_buttons_map[DOWN] ? ">DOWN:DOWN|t" : ">DOWN:.|t");
     teleplot_puts(active_game_buttons_map[LEFT] ? ">LEFT:LEFT|t" : ">LEFT:.|t");
     teleplot_puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t" : ">RIGHT:.|t");
+#elif TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_PUMP
+    teleplot_puts(active_game_buttons_map[DOWN_LEFT] ? ">DOWN_LEFT:DOWN_LEFT|t" : ">DOWN_LEFT:.|t");
+    teleplot_puts(active_game_buttons_map[UP_LEFT] ? ">UP_LEFT:UP_LEFT|t" : ">UP_LEFT:.|t");
+    teleplot_puts(active_game_buttons_map[MIDDLE] ? ">MIDDLE:MIDDLE|t" : ">MIDDLE:.|t");
+    teleplot_puts(active_game_buttons_map[UP_RIGHT] ? ">UP_RIGHT:UP_RIGHT|t" : ">UP_RIGHT:.|t");
+    teleplot_puts(active_game_buttons_map[DOWN_RIGHT] ? ">DOWN_RIGHT:DOWN_RIGHT|t" : ">DOWN_RIGHT:.|t");
+#endif // TOUCH_LAYOUT_TYPE
 
     for (int i = 0; i < num_touch_sensors; i++) {
       float val;
