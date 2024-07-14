@@ -39,15 +39,25 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
+include_directories(src/)
 add_executable(capacitive-dance-pad-pico
-  capacitive-dance-pad-pico.cpp
-  touch_sensor_thread.cpp
-  custom_logging.cpp
-  serial_config_console.cpp
-  multicore_ipc.cpp
-  usb_descriptors.c
-  reset_interface.c
-  tusb_config.h
+src/capacitive-dance-pad-pico.cpp
+src/config_defines.h
+src/config_values.hpp
+src/custom_logging.cpp
+src/custom_logging.hpp
+src/multicore_ipc.cpp
+src/multicore_ipc.h
+src/reset_interface.c
+src/running_stats.hpp
+src/serial_config_console.cpp
+src/serial_config_console.hpp
+src/touch_sensor_config.hpp
+src/touch_sensor_thread.cpp
+src/touch_sensor_thread.hpp
+src/tusb_config.h
+src/usb_descriptors.c
+src/usb_descriptors.h
   )
 
 pico_set_program_name(capacitive-dance-pad-pico "capacitive-dance-pad-pico")

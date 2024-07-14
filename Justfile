@@ -30,3 +30,6 @@ monitor:
 
 lsusb:
 	sudo lsusb -d cafe:4016 -v > lsusb_output.log
+
+list-sources:
+	ls -1 src/*.h src/*.c src/*.hpp src/*.cpp
