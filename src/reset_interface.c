@@ -1,6 +1,7 @@
 #include "tusb.h"
 
 #include "pico/bootrom.h"
+#include "pico/stdio_usb.h"
 
 #define PICO_STDIO_USB_RESET_BOOTSEL_ACTIVITY_LED 25
 

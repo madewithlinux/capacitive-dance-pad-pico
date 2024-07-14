@@ -109,6 +109,7 @@ void log_stats(touchpad_stats_t& stats) {
 
   int64_t reporting_time_us = absolute_time_diff_us(last_timestamp0, last_timestamp1);
   float reporting_freq = ((float)num_samples) / ((float)reporting_time_us / 1.0e6);
+  (void) reporting_freq;
 
   if (log_extra_sensor_info) {
     printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | index\n", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);

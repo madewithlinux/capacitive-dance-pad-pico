@@ -30,3 +30,8 @@ set filter_type 0
 set filter_type 1
 set filter_type 2
 ```
+
+# pump dance pad
+```bash
+just build-upload-monitor sockpad_pump_p2
+```

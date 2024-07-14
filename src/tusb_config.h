@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "pico/stdio_usb.h"
+#include "pico/stdio_usb.h"
 // PICO_CONFIG: PICO_STDIO_USB_STDOUT_TIMEOUT_US, Number of microseconds to be blocked trying to write USB output before assuming the host has disappeared and discarding data, default=500000, group=pico_stdio_usb
 #ifndef PICO_STDIO_USB_STDOUT_TIMEOUT_US
 #define PICO_STDIO_USB_STDOUT_TIMEOUT_US 500000

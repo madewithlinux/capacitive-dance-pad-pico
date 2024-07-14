@@ -2,15 +2,26 @@ dfu:
 	test -e /dev/ttyACM0
 	picocom -b 1200 /dev/ttyACM0 || true
 
-upload:
+default_upload_target := 'sockpad_itg8'
+default_build_target := 'all'
+
+upload TARGET=default_upload_target:
 	(test -e /dev/ttyACM0 && picocom -b 1200 /dev/ttyACM0) || true
 	sleep 1s
 	while ! test -d /media/julia/RPI-RP2; do sleep 1s; done
 	# sleep 1s
-	cp build/capacitive-dance-pad-pico.uf2 /media/julia/RPI-RP2
+	cp build/{{TARGET}}.uf2 /media/julia/RPI-RP2
 
-build:
+build-upload-monitor TARGET=default_upload_target:
+	(test -e /dev/ttyACM0 && picocom -b 1200 /dev/ttyACM0) || true
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
+	while ! test -d /media/julia/RPI-RP2; do sleep 1s; done
+	cp build/{{TARGET}}.uf2 /media/julia/RPI-RP2
+	while ! test -e /dev/ttyACM0; do sleep 1s; done
+	picocom /dev/ttyACM0
+
+build TARGET=default_build_target:
+	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build {{TARGET}}
 
 realclean:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build clean
@@ -21,18 +32,12 @@ realclean:
 		./build/*.elf.map \
 		./build/*.hex \
 		./build/*.uf2 \
+		./build/*.pio.h
 
 build-clean:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build clean
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
 
-build-upload-monitor:
-	(test -e /dev/ttyACM0 && picocom -b 1200 /dev/ttyACM0) || true
-	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
-	while ! test -d /media/julia/RPI-RP2; do sleep 1s; done
-	cp build/capacitive-dance-pad-pico.uf2 /media/julia/RPI-RP2
-	while ! test -e /dev/ttyACM0; do sleep 1s; done
-	picocom /dev/ttyACM0
 
 monitor:
 	while ! test -e /dev/ttyACM0; do sleep 1s; done

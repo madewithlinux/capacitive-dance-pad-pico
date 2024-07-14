@@ -33,78 +33,59 @@ if (PICO_SDK_VERSION_STRING VERSION_LESS "1.4.0")
 endif()
 
 project(capacitive-dance-pad-pico C CXX ASM)
-add_library(capacitive-dance-pad-pico INTERFACE)
+add_library(common_stuff INTERFACE)
 
 # Initialise the Raspberry Pi Pico SDK
 pico_sdk_init()
 
-# Add executable. Default name is the project name, version 0.1
-
 include_directories(src/)
-target_sources(capacitive-dance-pad-pico INTERFACE
-${CMAKE_CURRENT_LIST_DIR}/src/capacitive-dance-pad-pico.cpp
-${CMAKE_CURRENT_LIST_DIR}/src/config_defines.h
-${CMAKE_CURRENT_LIST_DIR}/src/config_values.hpp
-${CMAKE_CURRENT_LIST_DIR}/src/custom_logging.cpp
-${CMAKE_CURRENT_LIST_DIR}/src/custom_logging.hpp
-${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.cpp
-${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.h
-${CMAKE_CURRENT_LIST_DIR}/src/reset_interface.c
-${CMAKE_CURRENT_LIST_DIR}/src/running_stats.hpp
-${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.cpp
-${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.hpp
-${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_config.hpp
-${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_thread.cpp
-${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_thread.hpp
-${CMAKE_CURRENT_LIST_DIR}/src/tusb_config.h
-${CMAKE_CURRENT_LIST_DIR}/src/usb_descriptors.c
-${CMAKE_CURRENT_LIST_DIR}/src/usb_descriptors.h
-  )
-
-# pico_set_program_name(capacitive-dance-pad-pico "capacitive-dance-pad-pico")
-# pico_set_program_version(capacitive-dance-pad-pico "0.1")
+target_sources(common_stuff INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/src/capacitive-dance-pad-pico.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/config_defines.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/config_values.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/custom_logging.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/custom_logging.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/reset_interface.c
+    ${CMAKE_CURRENT_LIST_DIR}/src/running_stats.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_config.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_thread.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_thread.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/tusb_config.h
+    ${CMAKE_CURRENT_LIST_DIR}/src/usb_descriptors.c
+    ${CMAKE_CURRENT_LIST_DIR}/src/usb_descriptors.h
+)
 
 # Generate PIO header
-pico_generate_pio_header(capacitive-dance-pad-pico ${CMAKE_CURRENT_LIST_DIR}/blink.pio)
-pico_generate_pio_header(capacitive-dance-pad-pico ${CMAKE_CURRENT_LIST_DIR}/touch.pio)
-
-# Modify the below lines to enable/disable output over UART/USB
-pico_enable_stdio_uart(capacitive-dance-pad-pico 0)
-pico_enable_stdio_usb(capacitive-dance-pad-pico 1)
-
-# Make sure TinyUSB can find tusb_config.h
-target_include_directories(capacitive-dance-pad-pico INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR})
+pico_generate_pio_header(common_stuff ${CMAKE_CURRENT_LIST_DIR}/touch.pio)
 
 # Add the standard library to the build
 # In addition to pico_stdlib required for common PicoSDK functionality, add dependency on tinyusb_device
 # for TinyUSB device support and tinyusb_board for the additional board support library used by the example
-target_link_libraries(capacitive-dance-pad-pico INTERFACE
-        pico_stdlib
-        pico_multicore
-        pico_unique_id
-        tinyusb_device
-        tinyusb_board)
+target_link_libraries(common_stuff INTERFACE
+    pico_stdlib
+    pico_multicore
+    pico_unique_id
+    pico_stdio_usb
+    hardware_pio
+    hardware_timer
+    tinyusb_device
+    tinyusb_board)
 
-# Add the standard include files to the build
-target_include_directories(capacitive-dance-pad-pico INTERFACE
+# Add the standard include files to the build, and Make sure TinyUSB can find tusb_config.h
+target_include_directories(common_stuff INTERFACE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/.. # for our common lwipopts or any other standard includes, if required
   ${CMAKE_CURRENT_LIST_DIR}/src
 )
 
-# Add any user requested libraries
-target_link_libraries(capacitive-dance-pad-pico INTERFACE
-        hardware_pio
-        hardware_timer
-        )
-
-# pico_add_extra_outputs(capacitive-dance-pad-pico)
-
 add_compile_options(-Wall
-        -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
-        -Wno-unused-function # we have some for the docs that aren't called
-        )
+    -Wno-format          # int != int32_t as far as the compiler is concerned because gcc has int32_t as long int
+    -Wno-unused-function # we have some for the docs that aren't called
+)
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     add_compile_options(-Wno-maybe-uninitialized)
 endif()
@@ -112,18 +93,37 @@ endif()
 #########################################
 ### individual targets for different configurations
 
-add_executable(capacitive-dance-pad-pico-pump)
-target_link_libraries(capacitive-dance-pad-pico-pump capacitive-dance-pad-pico)
-target_compile_definitions(capacitive-dance-pad-pico-pump PRIVATE
-        TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_PUMP)
-pico_add_extra_outputs(capacitive-dance-pad-pico-pump)
+add_executable(sockpad_pump)
+target_link_libraries(sockpad_pump common_stuff)
+target_compile_definitions(sockpad_pump PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_PUMP
+)
+pico_add_extra_outputs(sockpad_pump)
+
+add_executable(sockpad_pump_p1)
+target_link_libraries(sockpad_pump_p1 common_stuff)
+target_compile_definitions(sockpad_pump_p1 PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_PUMP
+    PLAYER_NUMBER=1
+)
+pico_add_extra_outputs(sockpad_pump_p1)
+
+add_executable(sockpad_pump_p2)
+target_link_libraries(sockpad_pump_p2 common_stuff)
+target_compile_definitions(sockpad_pump_p2 PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_PUMP
+    PLAYER_NUMBER=2
+)
+pico_add_extra_outputs(sockpad_pump_p2)
 
 
-add_executable(capacitive-dance-pad-pico-itg8)
-target_link_libraries(capacitive-dance-pad-pico-itg8 capacitive-dance-pad-pico)
-target_compile_definitions(capacitive-dance-pad-pico-itg8 PRIVATE
-        TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8)
-pico_add_extra_outputs(capacitive-dance-pad-pico-itg8)
+add_executable(sockpad_itg8)
+target_link_libraries(sockpad_itg8 common_stuff)
+target_compile_definitions(sockpad_itg8 PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
+)
+pico_add_extra_outputs(sockpad_itg8)
+
 
 
 
