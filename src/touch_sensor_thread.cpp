@@ -23,10 +23,9 @@ uint32_t touch_sample_count = 0;
 
 #pragma endregion sensor config
 
-static PIO pios[NUM_PIOS] = {pio0, pio1};
-// NUM_PIO_STATE_MACHINES
 
 #if TOUCH_POLLING_TYPE == TOUCH_POLLING_PARALLEL
+static PIO pios[NUM_PIOS] = {pio0, pio1};
 
 void init_touch_sensors() {
   uint pio0_offset = pio_add_program(pio0, &touch_program);
@@ -36,7 +35,7 @@ void init_touch_sensors() {
 
   const uint pio_offsets[NUM_PIOS] = {pio0_offset, pio1_offset};
 
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_config_t cfg = touch_sensor_configs[i];
     const PIO pio = pios[cfg.pio_idx];
     const uint offset = pio_offsets[cfg.pio_idx];
@@ -58,18 +57,18 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
   // just allocate all of them and assume that's ok
   running_stats stats_by_pio_sm[NUM_PIOS][NUM_PIO_STATE_MACHINES];
   // set the proper threshold values
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_config_t cfg = touch_sensor_configs[i];
     stats_by_pio_sm[cfg.pio_idx][cfg.sm].threshold = touch_sensor_thresholds[i];
   }
 
   while (time_us_64() < end_time) {
-    for (int pio_idx = 0; pio_idx < NUM_PIOS; pio_idx++) {
+    for (uint pio_idx = 0; pio_idx < NUM_PIOS; pio_idx++) {
       const PIO pio = pios[pio_idx];
 
       pio_interrupt_clear(pio, 1);
       // for (uint sm = 0; sm < 4; sm++)
-      for (int i = 0; i < num_touch_sensors / 2; i++) {
+      for (uint i = 0; i < num_touch_sensors / 2; i++) {
         touch_sensor_config_t cfg = touch_sensors_by_pio[pio_idx][i];
         int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio, cfg.sm);
 #if TOUCH_SINGLE_SAMPLE_DEBUG
@@ -87,7 +86,7 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
     }
   }
   std::array<running_stats, num_touch_sensors> by_sensor;
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_config_t cfg = touch_sensor_configs[i];
     by_sensor[i] = stats_by_pio_sm[cfg.pio_idx][cfg.sm];
   }
@@ -102,7 +101,7 @@ void init_touch_sensors() {
   pio0_offset = pio_add_program(pio0, &touch_program);
   IF_SERIAL_LOG(printf("Loaded program in pio0 at %d\n", pio0_offset));
 
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_config_t cfg = touch_sensor_configs[i];
     assert(cfg.pio_idx == 0);
     assert(cfg.sm == 0);
@@ -122,13 +121,12 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
 
   running_stats stats_by_sensor[num_touch_sensors];
   // set the proper threshold values
-  for (int i = 0; i < num_touch_sensors; i++) {
-    touch_sensor_config_t cfg = touch_sensor_configs[i];
+  for (uint i = 0; i < num_touch_sensors; i++) {
     stats_by_sensor[i].threshold = touch_sensor_thresholds[i];
   }
 
   while (time_us_64() < end_time) {
-    for (int i = 0; i < num_touch_sensors; i++) {
+    for (uint i = 0; i < num_touch_sensors; i++) {
       touch_sensor_config_t cfg = touch_sensor_configs[i];
 
       pio_interrupt_clear(pio0, 1);
@@ -145,8 +143,7 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
     }
   }
   std::array<running_stats, num_touch_sensors> by_sensor;
-  for (int i = 0; i < num_touch_sensors; i++) {
-    touch_sensor_config_t cfg = touch_sensor_configs[i];
+  for (uint i = 0; i < num_touch_sensors; i++) {
     by_sensor[i] = stats_by_sensor[i];
   }
   return {by_sensor};
@@ -164,7 +161,7 @@ void __time_critical_func(run_touch_sensor_thread)() {
   blink = BLINK_SENSORS_CALIBRATING;
   queue_add_blocking(&q_blink_interval, &blink);
   touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us, /*init=*/true);
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
   }
 

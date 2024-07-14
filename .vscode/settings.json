@@ -117,7 +117,8 @@
         "cinttypes": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "time.h": "c"
     },
     "editor.tabSize": 2
 }

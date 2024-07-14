@@ -18,7 +18,7 @@ constexpr touch_sensor_config_t touch_sensor_configs[] = {
     // clang-format on
 };
 
-constexpr int num_touch_sensors = count_of(touch_sensor_configs);
+constexpr uint num_touch_sensors = count_of(touch_sensor_configs);
 
 // split up for convenience elsewhere
 constexpr touch_sensor_config_t

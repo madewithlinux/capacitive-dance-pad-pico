@@ -43,12 +43,12 @@ void serial_console_task(void) {
       // do nothing
     } else if (line_buf.rfind("list") == 0) {
       CDC_PUTS(itf, "config values:");
-      for (int i = 0; i < count_of(config_values); i++) {
+      for (uint i = 0; i < count_of(config_values); i++) {
         config_values[i].print_config_line(itf);
       }
       tud_cdc_n_write_str(itf, "\r\n");
     } else if (line_buf.rfind("touch_sensor_thresholds") == 0) {
-      for (int i = 0; i < num_touch_sensors; i++) {
+      for (uint i = 0; i < num_touch_sensors; i++) {
         CDC_PRINTF(itf, "touch_sensor_thresholds[%i] = %i\r\n", i, touch_sensor_thresholds[i]);
       }
     } else if (line_buf.rfind("set ") == 0) {
@@ -58,7 +58,7 @@ void serial_console_task(void) {
       std::string value_str(value_buf);
 
       bool found = false;
-      for (int i = 0; i < count_of(config_values); i++) {
+      for (uint i = 0; i < count_of(config_values); i++) {
         if (config_values[i].name == name_buf) {
           config_values[i].read_str(itf, value_str);
           found = true;

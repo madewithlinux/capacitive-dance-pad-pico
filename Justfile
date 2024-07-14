@@ -12,6 +12,16 @@ upload:
 build:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
 
+realclean:
+	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build clean
+	rm -f \
+		./build/*.bin \
+		./build/*.dis \
+		./build/*.elf \
+		./build/*.elf.map \
+		./build/*.hex \
+		./build/*.uf2 \
+
 build-clean:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build clean
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build

@@ -98,7 +98,7 @@ void log_stats(touchpad_stats_t& stats) {
   static absolute_time_t last_timestamp0 = get_absolute_time();
   static absolute_time_t last_timestamp1 = get_absolute_time();
 
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     if (stats.by_sensor[i].get_total_count() != stats.by_sensor[0].get_total_count()) {
       printf("ERROR: sensor %d count mismatch (%d vs %d)\n", i, stats.by_sensor[i].get_total_count(),
              stats.by_sensor[0].get_total_count());
@@ -155,7 +155,7 @@ void touch_stats_handler_task() {
   }
 
   memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
-  for (int i = 0; i < num_touch_sensors; i++) {
+  for (uint i = 0; i < num_touch_sensors; i++) {
     switch (filter_type) {
       case FILTER_TYPE_MEDIAN:
         if (stats.by_sensor[i].median_is_above_threshold()) {
@@ -222,7 +222,7 @@ void teleplot_task(void) {
     teleplot_puts(active_game_buttons_map[DOWN_RIGHT] ? ">DOWN_RIGHT:DOWN_RIGHT|t" : ">DOWN_RIGHT:.|t");
 #endif // TOUCH_LAYOUT_TYPE
 
-    for (int i = 0; i < num_touch_sensors; i++) {
+    for (uint i = 0; i < num_touch_sensors; i++) {
       float val;
       if (teleplot_normalize_values) {
         val = (stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i] / threshold_factor) /
