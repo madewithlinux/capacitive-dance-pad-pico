@@ -33,5 +33,6 @@ set filter_type 2
 
 # pump dance pad
 ```bash
+just build-upload-monitor sockpad_pump_p1
 just build-upload-monitor sockpad_pump_p2
 ```

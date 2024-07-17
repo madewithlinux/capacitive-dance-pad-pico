@@ -4,6 +4,7 @@
 #include "touch_sensor_config.hpp"
 
 extern uint16_t touch_sensor_thresholds[num_touch_sensors];
+extern float touch_sensor_baseline[num_touch_sensors];
 
 // for deriving the sampling rate
 extern uint32_t touch_sample_count;

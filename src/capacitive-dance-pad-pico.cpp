@@ -109,7 +109,7 @@ void log_stats(touchpad_stats_t& stats) {
 
   int64_t reporting_time_us = absolute_time_diff_us(last_timestamp0, last_timestamp1);
   float reporting_freq = ((float)num_samples) / ((float)reporting_time_us / 1.0e6);
-  (void) reporting_freq;
+  (void)reporting_freq;
 
   if (log_extra_sensor_info) {
     printf("%6.0f %6.0f %6.0f %6.0f||%6.0f %6.0f %6.0f %6.0f | index\n", 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0);
@@ -221,28 +221,17 @@ void teleplot_task(void) {
     teleplot_puts(active_game_buttons_map[MIDDLE] ? ">MIDDLE:MIDDLE|t" : ">MIDDLE:.|t");
     teleplot_puts(active_game_buttons_map[UP_RIGHT] ? ">UP_RIGHT:UP_RIGHT|t" : ">UP_RIGHT:.|t");
     teleplot_puts(active_game_buttons_map[DOWN_RIGHT] ? ">DOWN_RIGHT:DOWN_RIGHT|t" : ">DOWN_RIGHT:.|t");
-#endif // TOUCH_LAYOUT_TYPE
+#endif  // TOUCH_LAYOUT_TYPE
 
     for (uint i = 0; i < num_touch_sensors; i++) {
       float val;
       if (teleplot_normalize_values) {
-        val = (stats.by_sensor[i].get_mean_float() - touch_sensor_thresholds[i] / threshold_factor) /
-              touch_sensor_thresholds[i];
+        val = stats.by_sensor[i].get_mean_float() - touch_sensor_baseline[i];
       } else {
         val = stats.by_sensor[i].get_mean_float();
       }
       teleplot_printf(">t%d,s:%.3f\r\n", i, val);
     }
-    // teleplot_puts(">b,s:0.5");
-
-    // // single extra value just for testing
-    // {
-    //   teleplot_printf(">thresh,f:%i\r\n", touch_sensor_thresholds[6]);
-    //   teleplot_printf(">mean,f:%.3f\r\n",
-    //                   stats.by_sensor[6].median_is_above_threshold() * 2.0 * touch_sensor_thresholds[6]);
-    //   teleplot_printf(">avg,f:%.3f\r\n", stats.by_sensor[6].get_mean_float());
-    //   teleplot_printf(">iir,f:%.3f\r\n", stats.by_sensor[6].get_iir_filtered_value());
-    // }
 
     teleplot_flush();
     last_touch_sample_count = touch_sample_count;

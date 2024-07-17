@@ -9,19 +9,32 @@
 #include "touch_sensor_config.hpp"
 #include "touch_sensor_thread.hpp"
 
-float threshold_factor = 1.5;
+#ifndef DEFAULT_THRESHOLD_FACTOR
+#define DEFAULT_THRESHOLD_FACTOR 1.5
+#endif // DEFAULT_THRESHOLD_FACTOR
+#ifndef DEFAULT_THRESHOLD_VALUE
+#define DEFAULT_THRESHOLD_VALUE 150.0
+#endif // DEFAULT_THRESHOLD_VALUE
+
+float threshold_factor = DEFAULT_THRESHOLD_FACTOR;
+float threshold_value = DEFAULT_THRESHOLD_VALUE;
+int threshold_type = THRESHOLD_TYPE_VALUE;
 uint64_t threshold_sampling_duration_us = 2 * 1000 * 1000;
 uint64_t sampling_duration_us = 1 * 1000;
 uint64_t serial_teleplot_report_interval_us = 20 * 1000;
+bool teleplot_normalize_values = true;
 int filter_type = FILTER_TYPE_MEDIAN;
 bool usb_hid_enabled = true;
 float iir_filter_b = 0.8;
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
+    {"threshold_value", &threshold_value},
+    {"threshold_type", &threshold_type},
     {"threshold_sampling_duration_us", &threshold_sampling_duration_us},
     {"sampling_duration_us", &sampling_duration_us},
     {"serial_teleplot_report_interval_us", &serial_teleplot_report_interval_us},
+    {"teleplot_normalize_values", &teleplot_normalize_values},
     {"usb_hid_enabled", &usb_hid_enabled},
     {"filter_type", &filter_type},
     {"iir_filter_b", &iir_filter_b},

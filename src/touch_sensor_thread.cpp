@@ -15,14 +15,14 @@
 
 #pragma region sensor config
 
-// NOTE: THIS IS MUTABLE
+// NOTE: THESE ARE MUTABLE
 // uint16_t touch_sensor_thresholds[num_touch_sensors] = {200, 200, 200, 200, 200, 200, 200, 200};
 uint16_t touch_sensor_thresholds[num_touch_sensors] = {200};
+float touch_sensor_baseline[num_touch_sensors] = {0};
 
 uint32_t touch_sample_count = 0;
 
 #pragma endregion sensor config
-
 
 #if TOUCH_POLLING_TYPE == TOUCH_POLLING_PARALLEL
 static PIO pios[NUM_PIOS] = {pio0, pio1};
@@ -162,7 +162,17 @@ void __time_critical_func(run_touch_sensor_thread)() {
   queue_add_blocking(&q_blink_interval, &blink);
   touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us, /*init=*/true);
   for (uint i = 0; i < num_touch_sensors; i++) {
-    touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
+    touch_sensor_baseline[i] = stats.by_sensor[i].get_mean_float();
+    switch (threshold_type) {
+      case THRESHOLD_TYPE_FACTOR:
+        touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
+        break;
+      case THRESHOLD_TYPE_VALUE:
+        touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() + threshold_value);
+        break;
+      default:
+        break;
+    }
   }
 
   IF_SERIAL_LOG(printf("begin reading all 8 PIO touch values\n"));
