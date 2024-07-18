@@ -21,45 +21,13 @@
 #include "config_defines.h"
 #include "custom_logging.hpp"
 #include "serial_config_console.hpp"
+#include "teleplot_task.hpp"
+#include "touch_hid_tasks.hpp"
+
 #include "touch.pio.h"
 
 static blink_interval_t blink_interval_ms = BLINK_INIT;
 
-// TODO: some way to make these dependent on which player it is
-static uint8_t game_button_to_keycode_map[NUM_GAME_BUTTONS] = {
-#if PLAYER_NUMBER == 1
-    // DDR/ITG
-    [UP] = HID_KEY_ARROW_UP,
-    [DOWN] = HID_KEY_ARROW_DOWN,
-    [LEFT] = HID_KEY_ARROW_LEFT,
-    [RIGHT] = HID_KEY_ARROW_RIGHT,
-    // pump
-    [MIDDLE] = HID_KEY_S,
-    [UP_LEFT] = HID_KEY_Q,
-    [UP_RIGHT] = HID_KEY_E,
-    [DOWN_LEFT] = HID_KEY_Z,
-    [DOWN_RIGHT] = HID_KEY_C,
-#elif PLAYER_NUMBER == 2
-    // DDR/ITG
-    [UP] = HID_KEY_KEYPAD_8,
-    [DOWN] = HID_KEY_KEYPAD_2,
-    [LEFT] = HID_KEY_KEYPAD_4,
-    [RIGHT] = HID_KEY_KEYPAD_6,
-    // pump
-    [MIDDLE] = HID_KEY_KEYPAD_5,
-    [UP_LEFT] = HID_KEY_KEYPAD_7,
-    [UP_RIGHT] = HID_KEY_KEYPAD_9,
-    [DOWN_LEFT] = HID_KEY_KEYPAD_1,
-    [DOWN_RIGHT] = HID_KEY_KEYPAD_3,
-#else
-#error "invalid PLAYER_NUMBER"
-#endif
-};
-
-static uint8_t hid_report_keycodes[6] = {0};
-static bool hid_report_dirty = true;
-static bool active_game_buttons_map[NUM_GAME_BUTTONS] = {false};
-static touchpad_stats_t stats;
 
 #define URL "example.tinyusb.org/webusb-serial/index.html"
 
@@ -71,10 +39,7 @@ const tusb_desc_webusb_url_t desc_url = {.bLength = 3 + sizeof(URL) - 1,
 static bool web_serial_connected = false;
 
 void led_blinking_task(void);
-void touch_stats_handler_task();
-void hid_task();
 void webserial_task(void);
-void teleplot_task(void);
 
 int main() {
   board_init();
@@ -92,100 +57,6 @@ int main() {
     led_blinking_task();
     teleplot_task();
   }
-}
-
-void touch_stats_handler_task() {
-  if (queue_is_empty(&q_touchpad_stats)) {
-    return;
-  }
-
-  // remove from the queue until it's empty, because we want the most recent one
-  while (!queue_is_empty(&q_touchpad_stats)) {
-    queue_try_remove(&q_touchpad_stats, &stats);
-  }
-
-  memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
-  for (uint i = 0; i < num_touch_sensors; i++) {
-    switch (filter_type) {
-      case FILTER_TYPE_MEDIAN:
-        if (stats.by_sensor[i].median_is_above_threshold()) {
-          active_game_buttons_map[touch_sensor_configs[i].button] = true;
-        }
-        break;
-      case FILTER_TYPE_AVG:
-        if (stats.by_sensor[i].avg_is_above_threshold()) {
-          active_game_buttons_map[touch_sensor_configs[i].button] = true;
-        }
-        break;
-      case FILTER_TYPE_IIR:
-        if (stats.by_sensor[i].iir_is_above_threshold()) {
-          active_game_buttons_map[touch_sensor_configs[i].button] = true;
-        }
-        break;
-
-      default:
-        // TODO invalid value
-        break;
-    }
-  }
-
-  memset(hid_report_keycodes, 0, sizeof(hid_report_keycodes));
-  int hid_keycode_idx = 0;
-  for (int gbtn = 0; gbtn < NUM_GAME_BUTTONS; gbtn++) {
-    if (active_game_buttons_map[gbtn]) {
-      uint8_t kc = game_button_to_keycode_map[gbtn];
-      hid_report_keycodes[hid_keycode_idx] = kc;
-      hid_keycode_idx++;
-    }
-  }
-  hid_report_dirty = true;
-}
-
-void teleplot_task(void) {
-#if SERIAL_TELEPLOT
-
-  static uint64_t last_teleplot_report_us = time_us_64();
-  static uint32_t last_touch_sample_count = 0;
-  if (time_us_64() - last_teleplot_report_us > serial_teleplot_report_interval_us) {
-    last_teleplot_report_us += serial_teleplot_report_interval_us;
-    if (!teleplot_is_connected()) {
-      return;
-    }
-
-    if (touch_sample_count > 0) {
-      float touch_sample_rate =
-          (touch_sample_count - last_touch_sample_count) / ((float)serial_teleplot_report_interval_us * 1.0e-6);
-      teleplot_printf(">r:%.3f\r\n", touch_sample_rate);
-      teleplot_printf(">s:%d\r\n", touch_sample_count - last_touch_sample_count);
-    }
-
-#if TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_ITG
-    teleplot_puts(active_game_buttons_map[UP] ? ">UP:UP|t" : ">UP:.|t");
-    teleplot_puts(active_game_buttons_map[DOWN] ? ">DOWN:DOWN|t" : ">DOWN:.|t");
-    teleplot_puts(active_game_buttons_map[LEFT] ? ">LEFT:LEFT|t" : ">LEFT:.|t");
-    teleplot_puts(active_game_buttons_map[RIGHT] ? ">RIGHT:RIGHT|t" : ">RIGHT:.|t");
-#elif TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_PUMP
-    teleplot_puts(active_game_buttons_map[DOWN_LEFT] ? ">DOWN_LEFT:DOWN_LEFT|t" : ">DOWN_LEFT:.|t");
-    teleplot_puts(active_game_buttons_map[UP_LEFT] ? ">UP_LEFT:UP_LEFT|t" : ">UP_LEFT:.|t");
-    teleplot_puts(active_game_buttons_map[MIDDLE] ? ">MIDDLE:MIDDLE|t" : ">MIDDLE:.|t");
-    teleplot_puts(active_game_buttons_map[UP_RIGHT] ? ">UP_RIGHT:UP_RIGHT|t" : ">UP_RIGHT:.|t");
-    teleplot_puts(active_game_buttons_map[DOWN_RIGHT] ? ">DOWN_RIGHT:DOWN_RIGHT|t" : ">DOWN_RIGHT:.|t");
-#endif  // TOUCH_LAYOUT_TYPE
-
-    for (uint i = 0; i < num_touch_sensors; i++) {
-      float val;
-      if (teleplot_normalize_values) {
-        val = stats.by_sensor[i].get_mean_float() - touch_sensor_baseline[i];
-      } else {
-        val = stats.by_sensor[i].get_mean_float();
-      }
-      teleplot_printf(">t%d,s:%.3f\r\n", i, val);
-    }
-
-    teleplot_flush();
-    last_touch_sample_count = touch_sample_count;
-  }
-#endif
 }
 
 //--------------------------------------------------------------------+
@@ -318,28 +189,6 @@ void webserial_task(void) {
 // USB HID
 //--------------------------------------------------------------------+
 
-void hid_task(void) {
-  if (!usb_hid_enabled) {
-    return;
-  }
-  // Remote wakeup
-  if (tud_suspended()) {
-    // Wake up host if we are in suspend mode
-    // and REMOTE_WAKEUP feature is enabled by host
-    tud_remote_wakeup();
-  }
-
-  if (!hid_report_dirty) {
-    return;
-  }
-
-  // skip if hid is not ready yet
-  if (!tud_hid_ready())
-    return;
-
-  tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, hid_report_keycodes);
-  hid_report_dirty = false;
-}
 
 #if 0
 // Invoked when sent REPORT successfully to host

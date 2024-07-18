@@ -51,6 +51,10 @@ target_sources(common_stuff INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/src/running_stats.hpp
     ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/teleplot_task.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/teleplot_task.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/touch_hid_tasks.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/touch_hid_tasks.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_config.hpp
     ${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_thread.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/touch_sensor_thread.hpp
