@@ -36,3 +36,15 @@ set filter_type 2
 just build-upload-monitor sockpad_pump_p1
 just build-upload-monitor sockpad_pump_p2
 ```
+
+
+# check polling rate
+https://github.com/Simply-Love/Simply-Love-SM5/blob/itgmania-release/Other/Documentation/USBPollingIssues-README.md
+https://github.com/geefr/stepmania-linux-goodies/wiki/evhz-usage
+
+https://wiki.archlinux.org/title/mouse_polling_rate
+check requested polling rate:
+```bash
+sudo grep -B3 -A12 "cafe.*4016" /sys/kernel/debug/usb/devices
+```
+
