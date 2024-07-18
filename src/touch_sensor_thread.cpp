@@ -20,7 +20,7 @@
 uint16_t touch_sensor_thresholds[num_touch_sensors] = {200};
 float touch_sensor_baseline[num_touch_sensors] = {0};
 
-uint32_t touch_sample_count = 0;
+volatile uint32_t touch_sample_count = 0;
 
 #pragma endregion sensor config
 

@@ -13,18 +13,21 @@ void teleplot_task() {
 #if SERIAL_TELEPLOT
 
   static uint64_t last_teleplot_report_us = time_us_64();
+  static uint32_t current_touch_sample_count = 0;
   static uint32_t last_touch_sample_count = 0;
   if (time_us_64() - last_teleplot_report_us > serial_teleplot_report_interval_us) {
     last_teleplot_report_us += serial_teleplot_report_interval_us;
+    last_touch_sample_count = current_touch_sample_count;
+    current_touch_sample_count = touch_sample_count;
     if (!teleplot_is_connected()) {
       return;
     }
 
-    if (touch_sample_count > 0) {
+    if (current_touch_sample_count > 0 && last_touch_sample_count > 0) {
       float touch_sample_rate =
-          (touch_sample_count - last_touch_sample_count) / ((float)serial_teleplot_report_interval_us * 1.0e-6);
+          (current_touch_sample_count - last_touch_sample_count) / ((float)serial_teleplot_report_interval_us * 1.0e-6);
       teleplot_printf(">r:%.3f\r\n", touch_sample_rate);
-      teleplot_printf(">s:%d\r\n", touch_sample_count - last_touch_sample_count);
+      // teleplot_printf(">s:%d\r\n", current_touch_sample_count - last_touch_sample_count);
     }
 
 #if TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_ITG
@@ -51,7 +54,6 @@ void teleplot_task() {
     }
 
     teleplot_flush();
-    last_touch_sample_count = touch_sample_count;
   }
 #endif
 }
