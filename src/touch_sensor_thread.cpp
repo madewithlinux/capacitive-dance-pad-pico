@@ -103,17 +103,18 @@ void init_touch_sensors() {
 
   for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_config_t cfg = touch_sensor_configs[i];
-    assert(cfg.pio_idx == 0);
-    assert(cfg.sm == 0);
+    // ignore the config-specified PIO and state machine
+    // assert(cfg.pio_idx == 0);
+    // assert(cfg.sm == 0);
 
     gpio_disable_pulls(cfg.pin);
     gpio_set_drive_strength(cfg.pin, GPIO_DRIVE_STRENGTH_12MA);
 
-    pio_sm_set_enabled(pio0, cfg.sm, false);
-    touch_program_init(pio0, cfg.sm, pio0_offset, cfg.pin);
-    pio_sm_set_enabled(pio0, cfg.sm, true);
-    pio_set_irq0_source_enabled(pio0, (enum pio_interrupt_source)((uint)pis_interrupt0 + cfg.sm), false);
-    pio_set_irq1_source_enabled(pio0, (enum pio_interrupt_source)((uint)pis_interrupt0 + cfg.sm), false);
+    pio_sm_set_enabled(pio0, 0, false);
+    touch_program_init(pio0, 0, pio0_offset, cfg.pin);
+    pio_sm_set_enabled(pio0, 0, true);
+    pio_set_irq0_source_enabled(pio0, (enum pio_interrupt_source)((uint)pis_interrupt0), false);
+    pio_set_irq1_source_enabled(pio0, (enum pio_interrupt_source)((uint)pis_interrupt0), false);
   }
 }
 touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t duration_us, bool init = false) {
@@ -130,11 +131,11 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
       touch_sensor_config_t cfg = touch_sensor_configs[i];
 
       pio_interrupt_clear(pio0, 1);
-      pio_sm_set_enabled(pio0, cfg.sm, false);
-      touch_program_init(pio0, cfg.sm, pio0_offset, cfg.pin);
-      pio_sm_set_enabled(pio0, cfg.sm, true);
+      pio_sm_set_enabled(pio0, 0, false);
+      touch_program_init(pio0, 0, pio0_offset, cfg.pin);
+      pio_sm_set_enabled(pio0, 0, true);
 
-      int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio0, cfg.sm);
+      int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio0, 0);
       stats_by_sensor[i].add_value(value);
       pio_interrupt_clear(pio0, 0);
     }

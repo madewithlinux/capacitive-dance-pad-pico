@@ -93,6 +93,13 @@ endif()
 #########################################
 ### individual targets for different configurations
 
+add_executable(sockpad_itg8)
+target_link_libraries(sockpad_itg8 common_stuff)
+target_compile_definitions(sockpad_itg8 PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
+)
+pico_add_extra_outputs(sockpad_itg8)
+
 add_executable(sockpad_pump)
 target_link_libraries(sockpad_pump common_stuff)
 target_compile_definitions(sockpad_pump PRIVATE
@@ -117,12 +124,7 @@ target_compile_definitions(sockpad_pump_p2 PRIVATE
 pico_add_extra_outputs(sockpad_pump_p2)
 
 
-add_executable(sockpad_itg8)
-target_link_libraries(sockpad_itg8 common_stuff)
-target_compile_definitions(sockpad_itg8 PRIVATE
-    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
-)
-pico_add_extra_outputs(sockpad_itg8)
+
 
 
 
