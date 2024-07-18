@@ -40,7 +40,7 @@ pico_sdk_init()
 
 include_directories(src/)
 target_sources(common_stuff INTERFACE
-    ${CMAKE_CURRENT_LIST_DIR}/src/capacitive-dance-pad-pico.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/src/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/config_defines.h
     ${CMAKE_CURRENT_LIST_DIR}/src/config_values.hpp
     ${CMAKE_CURRENT_LIST_DIR}/src/custom_logging.cpp
