@@ -4,7 +4,9 @@
 
 bool read_line_into_string(uint8_t itf, std::string& line_buf, bool echo_mid_line = true);
 
-void serial_console_task(void);
+void serial_console_init();
+
+void serial_console_task();
 
 struct config_console_value {
   const std::string name;
@@ -21,4 +23,7 @@ struct config_console_value {
 
   const void print_config_line(uint8_t itf);
   const bool read_str(uint8_t itf, const std::string& value_str);
+
+  const bool read_from_raw(const void * raw_value_ptr);
+  const bool write_to_raw(void * raw_value_ptr);
 };

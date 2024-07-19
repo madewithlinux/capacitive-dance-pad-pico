@@ -1,6 +1,10 @@
 #include <charconv>
 #include <string>
 #include <variant>
+
+#include "hardware/flash.h"
+#include "pico/stdlib.h"
+
 #include "tusb.h"
 
 #include "config_defines.h"
@@ -11,10 +15,10 @@
 
 #ifndef DEFAULT_THRESHOLD_FACTOR
 #define DEFAULT_THRESHOLD_FACTOR 1.5
-#endif // DEFAULT_THRESHOLD_FACTOR
+#endif  // DEFAULT_THRESHOLD_FACTOR
 #ifndef DEFAULT_THRESHOLD_VALUE
 #define DEFAULT_THRESHOLD_VALUE 150.0
-#endif // DEFAULT_THRESHOLD_VALUE
+#endif  // DEFAULT_THRESHOLD_VALUE
 
 float threshold_factor = DEFAULT_THRESHOLD_FACTOR;
 float threshold_value = DEFAULT_THRESHOLD_VALUE;
@@ -41,7 +45,12 @@ static config_console_value config_values[] = {
 };
 
 // #if SERIAL_CONFIG_CONSOLE
-void serial_console_task(void) {
+
+void erase_saved_config_in_flash();
+bool write_config_to_flash();
+bool read_config_from_flash();
+
+void serial_console_task() {
   constexpr uint8_t itf = SERIAL_CONFIG_CONSOLE_INTERFACE;
   static std::string line_buf;
 
@@ -82,6 +91,21 @@ void serial_console_task(void) {
         // CDC_PUTS(itf, "config value not found");
         CDC_PRINTF(itf, "config value not found: %s\r\n", name_buf);
       }
+    } else if (line_buf.rfind("save") == 0) {
+      if (write_config_to_flash()) {
+        CDC_PUTS(itf, "success");
+      } else {
+        CDC_PUTS(itf, "fail");
+      }
+    } else if (line_buf.rfind("load") == 0) {
+      if (read_config_from_flash()) {
+        CDC_PUTS(itf, "success");
+      } else {
+        CDC_PUTS(itf, "fail");
+      }
+    } else if (line_buf.rfind("reset") == 0) {
+      erase_saved_config_in_flash();
+      CDC_PUTS(itf, "unplug and replug to complete the config reset");
     } else {
       CDC_PRINTF(itf, "command not recognized: %s\r\n", line_buf.c_str());
     }
@@ -127,19 +151,20 @@ const bool config_console_value::read_str(uint8_t itf, const std::string& value_
       *value_float = value_float2;
     }
   } else if (value_uint64_t) {
-    float value_uint64_t2;
+    uint64_t value_uint64_t2;
     fcr = std::from_chars(first, last, value_uint64_t2);
     if (fcr.ec == std::errc{}) {
       *value_uint64_t = value_uint64_t2;
     }
   } else if (value_int) {
-    float value_int2;
+    int value_int2;
     fcr = std::from_chars(first, last, value_int2);
     if (fcr.ec == std::errc{}) {
       *value_int = value_int2;
     }
   } else if (value_bool) {
-    float value_bool2;
+    // TODO: better/easier bool format?
+    int value_bool2;
     fcr = std::from_chars(first, last, value_bool2);
     if (fcr.ec == std::errc{}) {
       *value_bool = value_bool2;
@@ -153,6 +178,36 @@ const bool config_console_value::read_str(uint8_t itf, const std::string& value_
     return false;
   }
   CDC_FLUSH(itf);
+  return true;
+}
+
+const bool config_console_value::read_from_raw(const void* raw_value_ptr) {
+  if (0) {
+    // clang-format off
+  } else if (value_float   ) { *value_float    = *((float    *) raw_value_ptr);
+  } else if (value_uint64_t) { *value_uint64_t = *((uint64_t *) raw_value_ptr);
+  } else if (value_int     ) { *value_int      = *((int      *) raw_value_ptr);
+  } else if (value_bool    ) { *value_bool     = *((bool     *) raw_value_ptr);
+    // clang-format on
+  } else {
+    // TODO: error handling?
+    return false;
+  }
+  return true;
+}
+
+const bool config_console_value::write_to_raw(void* raw_value_ptr) {
+  if (0) {
+    // clang-format off
+  } else if (value_float   ) {*((float    *) raw_value_ptr) = *value_float    ;
+  } else if (value_uint64_t) {*((uint64_t *) raw_value_ptr) = *value_uint64_t ;
+  } else if (value_int     ) {*((int      *) raw_value_ptr) = *value_int      ;
+  } else if (value_bool    ) {*((bool     *) raw_value_ptr) = *value_bool     ;
+    // clang-format on
+  } else {
+    // TODO: error handling?
+    return false;
+  }
   return true;
 }
 
@@ -185,4 +240,70 @@ bool read_line_into_string(uint8_t itf, std::string& line_buf, bool echo_mid_lin
     }
   }
   return false;
+}
+
+void serial_console_init() {
+  // attempt to read the config from flash memory, and if that fails (likely due to a config schema change), overwrite
+  // it with the new default config
+  if (!read_config_from_flash()) {
+    write_config_to_flash();
+  }
+}
+
+constexpr uint64_t current_config_version = 1;
+
+struct flash_config_header {
+  uint64_t version;
+  uint64_t num_config_values;
+};
+
+// constexpr size_t flash_page_size_words = FLASH_PAGE_SIZE / sizeof(uint64_t);
+constexpr size_t max_flash_config_value_elements = (FLASH_PAGE_SIZE - sizeof(flash_config_header)) / sizeof(uint64_t);
+
+struct flash_config {
+  flash_config_header header;
+  uint64_t config_value_elements[max_flash_config_value_elements];
+};
+
+#define FLASH_TARGET_OFFSET (256 * 1024)
+
+const flash_config* flash_config_contents = (const flash_config*)(XIP_BASE + FLASH_TARGET_OFFSET);
+
+void erase_saved_config_in_flash() {
+  flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE);
+}
+bool write_config_to_flash() {
+  flash_range_erase(FLASH_TARGET_OFFSET, FLASH_SECTOR_SIZE);
+
+  static_assert(sizeof(flash_config) == FLASH_PAGE_SIZE, "config size mismatch");
+  static_assert(count_of(config_values) <= max_flash_config_value_elements, "too many config values!");
+
+  flash_config config_to_write;
+  config_to_write.header.version = current_config_version;
+  config_to_write.header.num_config_values = count_of(config_values);
+  for (size_t i = 0; i < count_of(config_values); i++) {
+    void* raw_value_ptr = &config_to_write.config_value_elements[i];
+    if (!config_values[i].write_to_raw(raw_value_ptr)) {
+      return false;
+    }
+  }
+
+  flash_range_program(FLASH_TARGET_OFFSET, (const uint8_t*)(&config_to_write), sizeof(flash_config));
+  return true;
+}
+
+bool read_config_from_flash() {
+  if (flash_config_contents->header.version != current_config_version) {
+    return false;
+  } else if (flash_config_contents->header.num_config_values != count_of(config_values)) {
+    return false;
+  }
+
+  for (size_t i = 0; i < MIN(count_of(config_values), flash_config_contents->header.num_config_values); i++) {
+    const void* raw_value_ptr = &(flash_config_contents->config_value_elements[i]);
+    if (!config_values[i].read_from_raw(raw_value_ptr)) {
+      return false;
+    }
+  }
+  return true;
 }

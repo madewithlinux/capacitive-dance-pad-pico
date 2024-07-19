@@ -46,6 +46,7 @@ int main() {
   tud_init(BOARD_TUD_RHPORT);
   stdio_init_all();
   init_queues();
+  serial_console_init();
 
   multicore_launch_core1(run_touch_sensor_thread);
   while (1) {
