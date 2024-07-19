@@ -12,6 +12,7 @@
 #include "serial_config_console.hpp"
 #include "touch_sensor_config.hpp"
 #include "touch_sensor_thread.hpp"
+#include "reset_interface.h"
 
 #ifndef DEFAULT_THRESHOLD_FACTOR
 #define DEFAULT_THRESHOLD_FACTOR 1.5
@@ -63,6 +64,15 @@ void serial_console_task() {
     //            line_buf.c_str());
     if (line_buf.empty()) {
       // do nothing
+    } else if (line_buf.rfind("help") == 0 || line_buf.rfind("?") == 0) {
+      CDC_PUTS(itf, "commands:");
+      CDC_PUTS(itf, "list            - print out all config elements and their values");
+      CDC_PUTS(itf, "set NAME VALUE  - set config element NAME to VALUE");
+      CDC_PUTS(itf, "save            - save current config values to flash storage (they will persist after it is unplugged)");
+      CDC_PUTS(itf, "load            - load config values from flash storage");
+      CDC_PUTS(itf, "reset           - erase the config values in flash storage, so you can revert to defaults");
+      CDC_PUTS(itf, "flash           - enter firmware update mode by rebooting into the UF2 bootloader");
+
     } else if (line_buf.rfind("list") == 0) {
       CDC_PUTS(itf, "config values:");
       for (uint i = 0; i < count_of(config_values); i++) {
@@ -106,6 +116,10 @@ void serial_console_task() {
     } else if (line_buf.rfind("reset") == 0) {
       erase_saved_config_in_flash();
       CDC_PUTS(itf, "unplug and replug to complete the config reset");
+    } else if (line_buf.rfind("flash") == 0) {
+      CDC_PUTS(itf, "rebooting into bootloader for firmware update");
+      CDC_FLUSH(itf);
+      reboot_to_uf2_bootloader();
     } else {
       CDC_PRINTF(itf, "command not recognized: %s\r\n", line_buf.c_str());
     }

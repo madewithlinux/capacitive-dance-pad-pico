@@ -48,6 +48,7 @@ target_sources(common_stuff INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.h
     ${CMAKE_CURRENT_LIST_DIR}/src/reset_interface.c
+    ${CMAKE_CURRENT_LIST_DIR}/src/reset_interface.h
     ${CMAKE_CURRENT_LIST_DIR}/src/running_stats.hpp
     ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.hpp

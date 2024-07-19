@@ -28,8 +28,8 @@
 
 static blink_interval_t blink_interval_ms = BLINK_INIT;
 
-
-#define URL "example.tinyusb.org/webusb-serial/index.html"
+// #define URL "example.tinyusb.org/webusb-serial/index.html"
+#define URL "https://serial.huhn.me/"
 
 const tusb_desc_webusb_url_t desc_url = {.bLength = 3 + sizeof(URL) - 1,
                                          .bDescriptorType = 3,  // WEBUSB URL type
@@ -189,7 +189,6 @@ void webserial_task(void) {
 //--------------------------------------------------------------------+
 // USB HID
 //--------------------------------------------------------------------+
-
 
 #if 0
 // Invoked when sent REPORT successfully to host
