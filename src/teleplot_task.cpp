@@ -9,6 +9,20 @@
 
 #include "teleplot_task.hpp"
 
+#ifndef TOUCH_LAYOUT_BUTTONS
+#if TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_ITG
+#define TOUCH_LAYOUT_BUTTONS \
+  { LEFT, DOWN, UP, RIGHT }
+#elif TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_PUMP
+#define TOUCH_LAYOUT_BUTTONS \
+  { DOWN_LEFT, UP_LEFT, MIDDLE, UP_RIGHT, DOWN_RIGHT }
+#else
+// for now this is just the rhythm horizon layout, plus start and select
+#define TOUCH_LAYOUT_BUTTONS \
+  { DOWN_LEFT, LEFT, UP_LEFT, DOWN, MIDDLE, UP, UP_RIGHT, RIGHT, DOWN_RIGHT, START, SELECT }
+#endif  // TOUCH_LAYOUT_TYPE
+#endif  // TOUCH_LAYOUT_BUTTONS
+
 void teleplot_task() {
 #if SERIAL_TELEPLOT
 
@@ -31,10 +45,8 @@ void teleplot_task() {
       teleplot_printf(">r:%.3f\r\n", touch_sample_rate);
     }
 
-#if TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_ITG
-
     teleplot_printf(">b:%u:- ", timestamp);
-    for (game_button btn : {LEFT, DOWN, UP, RIGHT}) {
+    for (game_button btn : TOUCH_LAYOUT_BUTTONS) {
       if (active_game_buttons_map[btn]) {
         teleplot_write_str(game_button_short_labels[btn]);
       } else {
@@ -44,23 +56,15 @@ void teleplot_task() {
     }
     teleplot_puts("-|t");
 
-#elif TOUCH_LAYOUT_TYPE == TOUCH_LAYOUT_PUMP
-    teleplot_puts(active_game_buttons_map[DOWN_LEFT] ? ">DOWN_LEFT:DOWN_LEFT|t" : ">DOWN_LEFT:.|t");
-    teleplot_puts(active_game_buttons_map[UP_LEFT] ? ">UP_LEFT:UP_LEFT|t" : ">UP_LEFT:.|t");
-    teleplot_puts(active_game_buttons_map[MIDDLE] ? ">MIDDLE:MIDDLE|t" : ">MIDDLE:.|t");
-    teleplot_puts(active_game_buttons_map[UP_RIGHT] ? ">UP_RIGHT:UP_RIGHT|t" : ">UP_RIGHT:.|t");
-    teleplot_puts(active_game_buttons_map[DOWN_RIGHT] ? ">DOWN_RIGHT:DOWN_RIGHT|t" : ">DOWN_RIGHT:.|t");
-#endif  // TOUCH_LAYOUT_TYPE
-
-      for (uint i = 0; i < num_touch_sensors; i++) {
-        float val;
-        if (teleplot_normalize_values) {
-          val = stats.by_sensor[i].get_mean_float() - touch_sensor_baseline[i];
-        } else {
-          val = stats.by_sensor[i].get_mean_float();
-        }
-        teleplot_printf(">t%d,s:%u:%.3f\r\n", i, timestamp, val);
+    for (uint i = 0; i < num_touch_sensors; i++) {
+      float val;
+      if (teleplot_normalize_values) {
+        val = stats.by_sensor[i].get_mean_float() - touch_sensor_baseline[i];
+      } else {
+        val = stats.by_sensor[i].get_mean_float();
       }
+      teleplot_printf(">t%d,s:%u:%.3f\r\n", i, timestamp, val);
+    }
 
     teleplot_flush();
   }
