@@ -19,6 +19,23 @@ enum game_button {
   INVALID = 0xff
 };
 
+// clang-format off
+constexpr const char* game_button_short_labels[] = {
+  [UP] = "UU",
+  [DOWN] = "DD",
+  [LEFT] = "LL",
+  [RIGHT] = "RR",
+  [MIDDLE] = "MI",
+  [UP_LEFT] = "UL",
+  [UP_RIGHT] = "UR",
+  [DOWN_LEFT] = "DL",
+  [DOWN_RIGHT] = "DR",
+  [START] = "ST",
+  [SELECT] = "SE",
+  [NUM_GAME_BUTTONS] = "##",
+};
+// clang-format on
+
 struct touch_sensor_config_t {
   const game_button button;
   const uint8_t pin;

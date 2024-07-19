@@ -53,6 +53,7 @@ inline int _cdc_puts(uint8_t itf, const char* str) {
 
 // clang-format off
 #define TELEPLOT_SERIAL_ITF           CDC_SERIAL1_ITF
+#define teleplot_write_str(str)       _cdc_usb_out_chars(TELEPLOT_SERIAL_ITF, str, strlen(str))
 #define teleplot_puts(str)            CDC_PUTS(TELEPLOT_SERIAL_ITF, str)
 #define teleplot_flush()              CDC_FLUSH(TELEPLOT_SERIAL_ITF)
 #define teleplot_is_connected()       CDC_IS_CONNECTED(TELEPLOT_SERIAL_ITF)
