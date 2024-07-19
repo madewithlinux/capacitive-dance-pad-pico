@@ -103,6 +103,17 @@ target_compile_definitions(sockpad_itg8 PRIVATE
     TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
 )
 pico_add_extra_outputs(sockpad_itg8)
+pico_set_binary_type(sockpad_itg8 copy_to_ram)
+
+add_executable(sockpad_itg8_parallel)
+target_link_libraries(sockpad_itg8_parallel common_stuff)
+target_compile_definitions(sockpad_itg8_parallel PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
+    TOUCH_POLLING_TYPE=TOUCH_POLLING_PARALLEL
+)
+pico_add_extra_outputs(sockpad_itg8_parallel)
+pico_set_binary_type(sockpad_itg8_parallel copy_to_ram)
+
 
 add_executable(sockpad_pump)
 target_link_libraries(sockpad_pump common_stuff)
@@ -110,6 +121,7 @@ target_compile_definitions(sockpad_pump PRIVATE
     TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_PUMP
 )
 pico_add_extra_outputs(sockpad_pump)
+pico_set_binary_type(sockpad_pump copy_to_ram)
 
 add_executable(sockpad_pump_p1)
 target_link_libraries(sockpad_pump_p1 common_stuff)
@@ -118,6 +130,7 @@ target_compile_definitions(sockpad_pump_p1 PRIVATE
     PLAYER_NUMBER=1
 )
 pico_add_extra_outputs(sockpad_pump_p1)
+pico_set_binary_type(sockpad_pump_p1 copy_to_ram)
 
 add_executable(sockpad_pump_p2)
 target_link_libraries(sockpad_pump_p2 common_stuff)
@@ -126,6 +139,7 @@ target_compile_definitions(sockpad_pump_p2 PRIVATE
     PLAYER_NUMBER=2
 )
 pico_add_extra_outputs(sockpad_pump_p2)
+pico_set_binary_type(sockpad_pump_p2 copy_to_ram)
 
 
 

@@ -48,3 +48,9 @@ check requested polling rate:
 sudo grep -B3 -A12 "cafe.*4016" /sys/kernel/debug/usb/devices
 ```
 
+
+# higher sensitivity, for use with shoes?
+```
+set threshold_value 10
+set threshold_value 15
+```

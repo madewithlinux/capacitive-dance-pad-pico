@@ -21,9 +21,8 @@ constexpr touch_sensor_config_t touch_sensor_configs[] = {
 constexpr uint num_touch_sensors = count_of(touch_sensor_configs);
 
 // split up for convenience elsewhere
-constexpr touch_sensor_config_t
-    touch_sensors_by_pio[NUM_PIOS][num_touch_sensors / 2] = {
-        // clang-format off
+constexpr touch_sensor_config_t touch_sensors_by_pio[NUM_PIOS][num_touch_sensors / 2] = {
+    // clang-format off
     {
         {UP    , /* A ,*/  14 ,   0,  3},
         {RIGHT , /* C ,*/  13 ,   0,  2},
@@ -36,9 +35,12 @@ constexpr touch_sensor_config_t
         {DOWN  , /* F ,*/  10 ,   1,  1},
         {LEFT  , /* H ,*/   9 ,   1,  0},
     },
-        // clang-format on
+    // clang-format on
 };
 
 #define TOUCH_LAYOUT_TYPE TOUCH_LAYOUT_ITG
+
+#ifndef TOUCH_POLLING_TYPE
 // #define TOUCH_POLLING_TYPE TOUCH_POLLING_PARALLEL
 #define TOUCH_POLLING_TYPE TOUCH_POLLING_SEQUENTIAL
+#endif  // TOUCH_POLLING_TYPE

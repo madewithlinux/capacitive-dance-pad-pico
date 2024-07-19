@@ -138,6 +138,7 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
       int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio0, 0);
       stats_by_sensor[i].add_value(value);
       pio_interrupt_clear(pio0, 0);
+      // pio_interrupt_clear(pio0, 1);
     }
     if (!init) {
       touch_sample_count++;
@@ -180,6 +181,21 @@ void __time_critical_func(run_touch_sensor_thread)() {
   blink = BLINK_SENSORS_OK;
   queue_add_blocking(&q_blink_interval, &blink);
   while (true) {
+    // update touch thresholds, just in case configured sensitivity has changed
+    for (uint i = 0; i < num_touch_sensors; i++) {
+      touch_sensor_baseline[i] = stats.by_sensor[i].get_mean_float();
+      switch (threshold_type) {
+        case THRESHOLD_TYPE_FACTOR:
+          touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
+          break;
+        case THRESHOLD_TYPE_VALUE:
+          touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() + threshold_value);
+          break;
+        default:
+          break;
+      }
+    }
+
     touchpad_stats_t stats = sample_touch_inputs_for_us(sampling_duration_us);
     if (queue_is_full(&q_touchpad_stats)) {
       touchpad_stats_t dummy;
