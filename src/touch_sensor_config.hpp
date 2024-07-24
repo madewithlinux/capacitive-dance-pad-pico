@@ -15,6 +15,7 @@ enum game_button {
   // menu buttons (probably also will never be used)
   START,
   SELECT,
+  BACK,
   NUM_GAME_BUTTONS,
   INVALID = 0xff
 };
@@ -32,6 +33,7 @@ constexpr const char* game_button_short_labels[] = {
   [DOWN_RIGHT] = "DR",
   [START] = "ST",
   [SELECT] = "SE",
+  [BACK] = "BK",
   [NUM_GAME_BUTTONS] = "##",
 };
 // clang-format on
@@ -61,6 +63,7 @@ struct touch_sensor_config_t {
 // values for TOUCH_SENSOR_CONFIG
 #define TOUCH_SENSOR_CONFIG_ITG8 1
 #define TOUCH_SENSOR_CONFIG_PUMP 2
+#define TOUCH_SENSOR_CONFIG_ITG  3
 
 // #ifndef TOUCH_SENSOR_CONFIG
 // #error "config parameter not defined: TOUCH_SENSOR_CONFIG"
@@ -69,6 +72,8 @@ struct touch_sensor_config_t {
 #include "touch_sensor_config_itg8.hpp"
 #elif TOUCH_SENSOR_CONFIG == TOUCH_SENSOR_CONFIG_PUMP
 #include "touch_sensor_config_pump.hpp"
+#elif TOUCH_SENSOR_CONFIG == TOUCH_SENSOR_CONFIG_ITG
+#include "touch_sensor_config_itg.hpp"
 #else
 #error "invalid value for TOUCH_SENSOR_CONFIG"
 #endif  // TOUCH_SENSOR_CONFIG

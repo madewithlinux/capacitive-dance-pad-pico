@@ -21,6 +21,10 @@ uint8_t game_button_to_keycode_map[NUM_GAME_BUTTONS] = {
     [UP_RIGHT] = HID_KEY_E,
     [DOWN_LEFT] = HID_KEY_Z,
     [DOWN_RIGHT] = HID_KEY_C,
+    // menu
+    [START] = HID_KEY_ENTER,
+    [SELECT] = HID_KEY_SLASH,
+    [BACK] = HID_KEY_ESCAPE,
 #elif PLAYER_NUMBER == 2
     // DDR/ITG
     [UP] = HID_KEY_KEYPAD_8,
@@ -33,6 +37,10 @@ uint8_t game_button_to_keycode_map[NUM_GAME_BUTTONS] = {
     [UP_RIGHT] = HID_KEY_KEYPAD_9,
     [DOWN_LEFT] = HID_KEY_KEYPAD_1,
     [DOWN_RIGHT] = HID_KEY_KEYPAD_3,
+    // menu
+    [START] = HID_KEY_KEYPAD_ENTER,
+    [SELECT] = HID_KEY_KEYPAD_0,
+    [BACK] = HID_KEY_BACKSLASH,
 #else
 #error "invalid PLAYER_NUMBER"
 #endif

@@ -98,6 +98,15 @@ endif()
 #########################################
 ### individual targets for different configurations
 
+add_executable(sockpad_itg)
+target_link_libraries(sockpad_itg common_stuff)
+target_compile_definitions(sockpad_itg PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG
+    PLAYER_NUMBER=1
+)
+pico_add_extra_outputs(sockpad_itg)
+pico_set_binary_type(sockpad_itg copy_to_ram)
+
 add_executable(sockpad_itg8)
 target_link_libraries(sockpad_itg8 common_stuff)
 target_compile_definitions(sockpad_itg8 PRIVATE
