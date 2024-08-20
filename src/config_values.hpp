@@ -11,6 +11,10 @@ extern bool teleplot_normalize_values;
 extern bool usb_hid_enabled;
 extern int filter_type;
 extern float iir_filter_b;
+// `sleep_us_between_samples` was added in an attempt to reduce signal noise. It did not work, and should be set to 0.
+extern uint64_t sleep_us_between_samples;
+// NOTE: this is us (microseconds), NOT ms (milliseconds)
+extern uint64_t debounce_us;
 // TODO: player1/player2 config option
 
 #define FILTER_TYPE_MEDIAN 0

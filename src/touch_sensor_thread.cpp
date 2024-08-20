@@ -139,6 +139,9 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
       stats_by_sensor[i].add_value(value);
       pio_interrupt_clear(pio0, 0);
       // pio_interrupt_clear(pio0, 1);
+      if (sleep_us_between_samples) {
+        sleep_us(sleep_us_between_samples);
+      }
     }
     if (!init) {
       touch_sample_count++;

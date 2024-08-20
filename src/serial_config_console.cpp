@@ -31,6 +31,8 @@ bool teleplot_normalize_values = true;
 int filter_type = FILTER_TYPE_MEDIAN;
 bool usb_hid_enabled = true;
 float iir_filter_b = 0.8;
+uint64_t sleep_us_between_samples = 0;
+uint64_t debounce_us = 10000; // 10ms
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
@@ -43,6 +45,8 @@ static config_console_value config_values[] = {
     {"usb_hid_enabled", &usb_hid_enabled},
     {"filter_type", &filter_type},
     {"iir_filter_b", &iir_filter_b},
+    {"sleep_us_between_samples", &sleep_us_between_samples},
+    {"debounce_us", &debounce_us},
 };
 
 // #if SERIAL_CONFIG_CONSOLE

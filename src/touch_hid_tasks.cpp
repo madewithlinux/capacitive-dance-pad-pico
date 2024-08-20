@@ -1,6 +1,6 @@
+#include "multicore_ipc.h"
 #include "pico/multicore.h"
 #include "pico/stdlib.h"
-#include "multicore_ipc.h"
 
 #include "tusb.h"
 #include "usb_descriptors.h"
@@ -51,6 +51,9 @@ bool hid_report_dirty = true;
 bool active_game_buttons_map[NUM_GAME_BUTTONS] = {false};
 touchpad_stats_t stats;
 
+// for debounce
+static uint64_t game_button_press_timestamp[NUM_GAME_BUTTONS] = {0};
+static uint64_t game_button_release_timestamp[NUM_GAME_BUTTONS] = {0};
 
 void touch_stats_handler_task() {
   if (queue_is_empty(&q_touchpad_stats)) {
@@ -61,6 +64,12 @@ void touch_stats_handler_task() {
   while (!queue_is_empty(&q_touchpad_stats)) {
     queue_try_remove(&q_touchpad_stats, &stats);
   }
+
+  bool prev_active_game_buttons_map[NUM_GAME_BUTTONS] = {0};
+  memcpy(prev_active_game_buttons_map, active_game_buttons_map, sizeof(active_game_buttons_map));
+  // (void) prev_active_game_buttons_map;
+  // (void) game_button_press_timestamp;
+  // (void) game_button_release_timestamp;
 
   memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
   for (uint i = 0; i < num_touch_sensors; i++) {
@@ -84,6 +93,27 @@ void touch_stats_handler_task() {
       default:
         // TODO invalid value
         break;
+    }
+  }
+
+  if (debounce_us) {
+    uint64_t now_us = time_us_64();
+    for (int gbtn = 0; gbtn < NUM_GAME_BUTTONS; gbtn++) {
+      if (now_us - game_button_press_timestamp[gbtn] < debounce_us) {
+        // inside press debounce window
+        // ignore that release
+        active_game_buttons_map[gbtn] = true;
+      } else if (now_us - game_button_release_timestamp[gbtn] < debounce_us) {
+        // inside release debounce window
+        // ignore that press
+        active_game_buttons_map[gbtn] = false;
+      } else if (prev_active_game_buttons_map[gbtn] && !active_game_buttons_map[gbtn]) {
+        // was pressed, now released
+        game_button_release_timestamp[gbtn] = now_us;
+      } else if (!prev_active_game_buttons_map[gbtn] && active_game_buttons_map[gbtn]) {
+        // was released, now pressed
+        game_button_press_timestamp[gbtn] = now_us;
+      }
     }
   }
 

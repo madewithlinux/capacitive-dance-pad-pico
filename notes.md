@@ -26,9 +26,27 @@ G - - D
 ```
 set threshold_factor 2.0
 set usb_hid_enabled 0
+
+
+set threshold_value 150
+set threshold_value 100
+set threshold_value 90
+
+set debounce_us 10000
+
+
+#define FILTER_TYPE_MEDIAN 0
 set filter_type 0
+#define FILTER_TYPE_AVG 1
 set filter_type 1
+#define FILTER_TYPE_IIR 2
 set filter_type 2
+set iir_filter_b 0.8
+set iir_filter_b 0.1
+
+set teleplot_normalize_values 0
+set teleplot_normalize_values 1
+
 ```
 
 # pump dance pad
