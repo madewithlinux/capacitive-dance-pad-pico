@@ -15,7 +15,7 @@
                 "interface/cmsis-dap.cfg",
                 "target/rp2040.cfg"
             ],
-            "svdFile": "${userHome}/.pico-sdk/sdk/1.5.1/src/rp2040/hardware_regs/rp2040.svd",
+            "svdFile": "${userHome}/.pico-sdk/sdk/2.0.0/src/rp2040/hardware_regs/rp2040.svd",
             "runToEntryPoint": "main",
             // Give restart the same functionality as runToEntryPoint - main
             "postRestartCommands": [
@@ -36,7 +36,7 @@
             "gdbTarget": "localhost:3333",
             "gdbPath": "gdb",
             "device": "RP2040",
-            "svdFile": "${userHome}/.pico-sdk/sdk/1.5.1/src/rp2040/hardware_regs/rp2040.svd",
+            "svdFile": "${userHome}/.pico-sdk/sdk/2.0.0/src/rp2040/hardware_regs/rp2040.svd",
             "runToEntryPoint": "main",
             // Give restart the same functionality as runToEntryPoint - main
             "postRestartCommands": [
@@ -62,7 +62,7 @@
                 "limit": 4
             },
             "preLaunchTask": "Flash",
-            "svdPath": "${userHome}/.pico-sdk/sdk/1.5.1/src/rp2040/hardware_regs/rp2040.svd"
+            "svdPath": "${userHome}/.pico-sdk/sdk/2.0.0/src/rp2040/hardware_regs/rp2040.svd"
         },
     ]
 }

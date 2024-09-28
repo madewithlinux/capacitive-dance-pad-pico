@@ -1,24 +1,26 @@
+set dotenv-load
+
 dfu:
-	test -e /dev/ttyACM0
-	picocom -b 1200 /dev/ttyACM0 || true
+	test -e $DEVICE
+	picocom -b 1200 $DEVICE || true
 
 default_upload_target := 'sockpad_itg8'
 default_build_target := 'all'
 
 upload TARGET=default_upload_target:
-	(test -e /dev/ttyACM0 && picocom -b 1200 /dev/ttyACM0) || true
+	(test -e $DEVICE && picocom -b 1200 $DEVICE) || true
 	sleep 1s
 	while ! test -d /media/julia/RPI-RP2; do sleep 1s; done
 	# sleep 1s
 	cp build/{{TARGET}}.uf2 /media/julia/RPI-RP2
 
 build-upload-monitor TARGET=default_upload_target:
-	(test -e /dev/ttyACM0 && picocom -b 1200 /dev/ttyACM0) || true
+	(test -e $DEVICE && picocom -b 1200 $DEVICE) || true
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build
 	while ! test -d /media/julia/RPI-RP2; do sleep 1s; done
 	cp build/{{TARGET}}.uf2 /media/julia/RPI-RP2
-	while ! test -e /dev/ttyACM0; do sleep 1s; done
-	picocom /dev/ttyACM0
+	while ! test -e $DEVICE; do sleep 1s; done
+	picocom $DEVICE
 
 build TARGET=default_build_target:
 	$HOME/.pico-sdk/ninja/v1.12.1/ninja -C ./build {{TARGET}}
@@ -40,8 +42,8 @@ build-clean:
 
 
 monitor:
-	while ! test -e /dev/ttyACM0; do sleep 1s; done
-	picocom /dev/ttyACM0
+	while ! test -e $DEVICE; do sleep 1s; done
+	picocom $DEVICE
 
 lsusb:
 	sudo lsusb -d cafe:4016 -v > lsusb_output.log
