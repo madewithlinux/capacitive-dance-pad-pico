@@ -5,6 +5,8 @@
 #include "reset_interface.h"
 
 #define PICO_STDIO_USB_RESET_BOOTSEL_ACTIVITY_LED 25
+// we have to manually define this, since we aren't using the tinyusb config supplied by the Pico SDK
+#define PICO_STDIO_USB_ENABLE_RESET_VIA_BAUD_RATE 1
 
 #if PICO_STDIO_USB_ENABLE_RESET_VIA_BAUD_RATE
 // Support for default BOOTSEL reset by changing baud rate

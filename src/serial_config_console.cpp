@@ -33,6 +33,7 @@ bool usb_hid_enabled = true;
 float iir_filter_b = 0.8;
 uint64_t sleep_us_between_samples = 0;
 uint64_t debounce_us = 10000; // 10ms
+float hysteresis = 50.0;
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
@@ -47,6 +48,7 @@ static config_console_value config_values[] = {
     {"iir_filter_b", &iir_filter_b},
     {"sleep_us_between_samples", &sleep_us_between_samples},
     {"debounce_us", &debounce_us},
+    {"hysteresis", &hysteresis},
 };
 
 // #if SERIAL_CONFIG_CONSOLE

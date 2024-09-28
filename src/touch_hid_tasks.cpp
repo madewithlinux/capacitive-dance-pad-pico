@@ -55,6 +55,9 @@ touchpad_stats_t stats;
 static uint64_t game_button_press_timestamp[NUM_GAME_BUTTONS] = {0};
 static uint64_t game_button_release_timestamp[NUM_GAME_BUTTONS] = {0};
 
+// TODO reorganize
+bool sensor_currently_active[num_touch_sensors] = {false};
+
 void touch_stats_handler_task() {
   if (queue_is_empty(&q_touchpad_stats)) {
     return;
@@ -67,26 +70,32 @@ void touch_stats_handler_task() {
 
   bool prev_active_game_buttons_map[NUM_GAME_BUTTONS] = {0};
   memcpy(prev_active_game_buttons_map, active_game_buttons_map, sizeof(active_game_buttons_map));
-  // (void) prev_active_game_buttons_map;
-  // (void) game_button_press_timestamp;
-  // (void) game_button_release_timestamp;
 
   memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
   for (uint i = 0; i < num_touch_sensors; i++) {
     switch (filter_type) {
       case FILTER_TYPE_MEDIAN:
-        if (stats.by_sensor[i].median_is_above_threshold()) {
+        if (stats.by_sensor[i].median_is_above_threshold_hysteresis(sensor_currently_active[i], hysteresis)) {
           active_game_buttons_map[touch_sensor_configs[i].button] = true;
+          sensor_currently_active[i] = true;
+        } else {
+          sensor_currently_active[i] = false;
         }
         break;
       case FILTER_TYPE_AVG:
-        if (stats.by_sensor[i].avg_is_above_threshold()) {
+        if (stats.by_sensor[i].avg_is_above_threshold_hysteresis(sensor_currently_active[i], hysteresis)) {
           active_game_buttons_map[touch_sensor_configs[i].button] = true;
+          sensor_currently_active[i] = true;
+        } else {
+          sensor_currently_active[i] = false;
         }
         break;
       case FILTER_TYPE_IIR:
-        if (stats.by_sensor[i].iir_is_above_threshold()) {
+        if (stats.by_sensor[i].iir_is_above_threshold_hysteresis(sensor_currently_active[i], hysteresis)) {
           active_game_buttons_map[touch_sensor_configs[i].button] = true;
+          sensor_currently_active[i] = true;
+        } else {
+          sensor_currently_active[i] = false;
         }
         break;
 

@@ -15,8 +15,11 @@ extern float iir_filter_b;
 extern uint64_t sleep_us_between_samples;
 // NOTE: this is us (microseconds), NOT ms (milliseconds)
 extern uint64_t debounce_us;
+// set to 0 to disable hysteresis
+extern float hysteresis;
 // TODO: player1/player2 config option
 
+// TODO: add weighted moving average and hull moving average
 #define FILTER_TYPE_MEDIAN 0
 #define FILTER_TYPE_AVG 1
 #define FILTER_TYPE_IIR 2

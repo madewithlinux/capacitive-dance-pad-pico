@@ -39,10 +39,36 @@ class running_stats {
   inline float get_mean_float() const { return (float)sum / (float)(count_above_threshold + count_below_threshold); }
 
   inline float get_iir_filtered_value() const { return iir_filter_value; }
+
   inline bool is_above_threshold() const { return count_above_threshold >= count_below_threshold; }
   inline bool median_is_above_threshold() const { return count_above_threshold >= count_below_threshold; }
   inline bool avg_is_above_threshold() const { return get_mean_float() >= threshold; }
   inline bool iir_is_above_threshold() const { return get_iir_filtered_value() >= threshold; }
+
+  // TODO reorganize
+  inline bool median_is_above_threshold_hysteresis(bool currently_active, float hysteresis) const {
+    return count_above_threshold >= count_below_threshold;
+    // TODO does this work? probably not
+    // if (currently_active) {
+    //   return count_above_threshold >= (count_below_threshold - hysteresis);
+    // } else {
+    //   return count_above_threshold >= count_below_threshold;
+    // }
+  }
+  inline bool avg_is_above_threshold_hysteresis(bool currently_active, float hysteresis) const {
+    if (currently_active) {
+      return get_mean_float() >= (threshold - hysteresis);
+    } else {
+      return get_mean_float() >= threshold;
+    }
+  }
+  inline bool iir_is_above_threshold_hysteresis(bool currently_active, float hysteresis) const {
+    if (currently_active) {
+      return get_iir_filtered_value() >= (threshold - hysteresis);
+    } else {
+      return get_iir_filtered_value() >= threshold;
+    }
+  }
 
   inline void reset() { *this = running_stats(); }
 };
