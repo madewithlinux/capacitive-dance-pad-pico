@@ -48,6 +48,10 @@ int main() {
   init_queues();
   serial_console_init();
 
+  // force SMPS to PWM mode, to reduce ripple
+  gpio_set_dir(23, GPIO_OUT);
+  gpio_put(23, 1);
+
   multicore_launch_core1(run_touch_sensor_thread);
   while (1) {
     tud_task();  // tinyusb device task
