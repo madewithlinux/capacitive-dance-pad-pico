@@ -10,7 +10,8 @@ constexpr touch_sensor_config_t touch_sensor_configs[] = {
     {UP_RIGHT   , /* B ,*/  10 ,   0,  0},
     {MIDDLE     , /* C ,*/   8 ,   0,  0},
     {DOWN_LEFT  , /* D ,*/   7 ,   0,  0},
-    {DOWN_RIGHT , /* E ,*/   9 ,   0,  0},
+    // DOWN_RIGHT should be pin 9, but that pin is apparently dead on one of my picos
+    {DOWN_RIGHT , /* E ,*/   12 ,   0,  0},
     // clang-format on
 };
 

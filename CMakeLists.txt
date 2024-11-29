@@ -142,6 +142,15 @@ target_compile_definitions(sockpad_pump_p1 PRIVATE
 pico_add_extra_outputs(sockpad_pump_p1)
 pico_set_binary_type(sockpad_pump_p1 copy_to_ram)
 
+add_executable(sockpad_pump2_p1)
+target_link_libraries(sockpad_pump2_p1 common_stuff)
+target_compile_definitions(sockpad_pump2_p1 PRIVATE
+    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_PUMP2
+    PLAYER_NUMBER=1
+)
+pico_add_extra_outputs(sockpad_pump2_p1)
+pico_set_binary_type(sockpad_pump2_p1 copy_to_ram)
+
 add_executable(sockpad_pump_p2)
 target_link_libraries(sockpad_pump_p2 common_stuff)
 target_compile_definitions(sockpad_pump_p2 PRIVATE

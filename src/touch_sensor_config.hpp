@@ -61,9 +61,10 @@ struct touch_sensor_config_t {
 #define TOUCH_LAYOUT_PUMP 2
 
 // values for TOUCH_SENSOR_CONFIG
-#define TOUCH_SENSOR_CONFIG_ITG8 1
-#define TOUCH_SENSOR_CONFIG_PUMP 2
-#define TOUCH_SENSOR_CONFIG_ITG  3
+#define TOUCH_SENSOR_CONFIG_ITG8  1
+#define TOUCH_SENSOR_CONFIG_PUMP  2
+#define TOUCH_SENSOR_CONFIG_ITG   3
+#define TOUCH_SENSOR_CONFIG_PUMP2 4
 
 // #ifndef TOUCH_SENSOR_CONFIG
 // #error "config parameter not defined: TOUCH_SENSOR_CONFIG"
@@ -72,6 +73,8 @@ struct touch_sensor_config_t {
 #include "touch_sensor_config_itg8.hpp"
 #elif TOUCH_SENSOR_CONFIG == TOUCH_SENSOR_CONFIG_PUMP
 #include "touch_sensor_config_pump.hpp"
+#elif TOUCH_SENSOR_CONFIG == TOUCH_SENSOR_CONFIG_PUMP2
+#include "touch_sensor_config_pump2.hpp"
 #elif TOUCH_SENSOR_CONFIG == TOUCH_SENSOR_CONFIG_ITG
 #include "touch_sensor_config_itg.hpp"
 #else
