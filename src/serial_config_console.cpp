@@ -9,10 +9,10 @@
 
 #include "config_defines.h"
 #include "custom_logging.hpp"
+#include "reset_interface.h"
 #include "serial_config_console.hpp"
 #include "touch_sensor_config.hpp"
 #include "touch_sensor_thread.hpp"
-#include "reset_interface.h"
 
 #ifndef DEFAULT_THRESHOLD_FACTOR
 #define DEFAULT_THRESHOLD_FACTOR 1.5
@@ -32,9 +32,11 @@ int filter_type = FILTER_TYPE_MEDIAN;
 bool usb_hid_enabled = true;
 float iir_filter_b = 0.01;
 uint64_t sleep_us_between_samples = 0;
-uint64_t debounce_us = 10000; // 10ms
+uint64_t debounce_us = 10000;  // 10ms
 float hysteresis = 50.0;
-uint64_t cfg_hma_window_size = 64;
+uint64_t cfg_hma_window_size = 128;
+uint64_t cfg_press_threshold = 150;
+uint64_t cfg_release_threshold = 100;
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
@@ -51,7 +53,18 @@ static config_console_value config_values[] = {
     {"debounce_us", &debounce_us},
     {"hysteresis", &hysteresis},
     {"cfg_hma_window_size", &cfg_hma_window_size},
+    {"cfg_press_threshold", &cfg_press_threshold},
+    {"cfg_release_threshold", &cfg_release_threshold},
 };
+
+void post_config_change_callback(config_console_value& config_value) {
+  if (config_value.name == "cfg_hma_window_size" || config_value.name == "cfg_press_threshold" ||
+      config_value.name == "cfg_release_threshold") {
+    for (uint i = 0; i < num_touch_sensors; i++) {
+      touch_sensor_data[i].set_should_update_config();
+    }
+  }
+}
 
 // #if SERIAL_CONFIG_CONSOLE
 
@@ -76,7 +89,9 @@ void serial_console_task() {
       CDC_PUTS(itf, "commands:");
       CDC_PUTS(itf, "list            - print out all config elements and their values");
       CDC_PUTS(itf, "set NAME VALUE  - set config element NAME to VALUE");
-      CDC_PUTS(itf, "save            - save current config values to flash storage (they will persist after it is unplugged)");
+      CDC_PUTS(
+          itf,
+          "save            - save current config values to flash storage (they will persist after it is unplugged)");
       CDC_PUTS(itf, "load            - load config values from flash storage");
       CDC_PUTS(itf, "reset           - erase the config values in flash storage, so you can revert to defaults");
       CDC_PUTS(itf, "flash           - enter firmware update mode by rebooting into the UF2 bootloader");
@@ -102,6 +117,7 @@ void serial_console_task() {
         if (config_values[i].name == name_buf) {
           config_values[i].read_str(itf, value_str);
           found = true;
+          post_config_change_callback(config_values[i]);
           break;
         }
       }

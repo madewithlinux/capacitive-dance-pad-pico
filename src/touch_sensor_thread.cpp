@@ -138,7 +138,6 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
 
       int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio0, 0);
       stats_by_sensor[i].add_value(value);
-      // normalized_touch_sensor_data[i].update(value);
       touch_sensor_data[i].update(value);
       pio_interrupt_clear(pio0, 0);
       // pio_interrupt_clear(pio0, 1);

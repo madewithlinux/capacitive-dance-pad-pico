@@ -168,54 +168,66 @@ class derivative_filter_i16 {
   }
 };
 
-struct sensor_data_filter {
+class sensor_data_filter {
+ private:
   // copies of config values, for change detection
-  uint16_t press_threshold = 100;
-  uint16_t release_threshold = 80;
-  uint16_t window_size = cfg_hma_window_size;
+  uint64_t _cfg_press_threshold = cfg_press_threshold;
+  uint64_t _cfg_release_threshold = cfg_release_threshold;
+  uint16_t _cfg_hma_window_size = cfg_hma_window_size;
   // filters
-  HullMovingAverage hma_filter = HullMovingAverage(window_size);
+  HullMovingAverage hma_filter = HullMovingAverage(cfg_hma_window_size);
   // derivative_filter_i16 deriv1;
   // state
-  uint16_t current_value = 0;
+  uint16_t current_raw_value = 0;
   bool is_pressed = false;
+  uint16_t press_raw_threshold = UINT16_MAX;
+  uint16_t release_raw_threshold = UINT16_MAX;
+  bool should_update_config = false;
   // parameters
   uint8_t sensor_index;
   uint16_t baseline_value;
 
+ public:
+  // default constructor (only to satisfy compiler)
   inline sensor_data_filter() : sensor_index(0), baseline_value(0) {}
+  // actual constructor to be used
   inline sensor_data_filter(uint8_t sensor_index, uint16_t baseline_value)
       : sensor_index(sensor_index), baseline_value(baseline_value) {}
 
-  inline void update_from_config() {
-    press_threshold = baseline_value + threshold_value;
-    // TODO: configurable hysteresis
-    release_threshold = baseline_value + threshold_value - 20;
-    if (cfg_hma_window_size != window_size) {
-      hma_filter = HullMovingAverage(cfg_hma_window_size);
-      window_size = cfg_hma_window_size;
-    }
-  }
+  inline void set_should_update_config() { should_update_config = true; }
 
-  inline float get_current_value() {
+  inline float get_current_value_raw_f32() { return ((float)current_raw_value); }
+  inline float get_current_value_norm_f32() {
     // convert to float first in case result is negative
-    return ((float)current_value) - ((float)baseline_value);
+    return ((float)current_raw_value) - ((float)baseline_value);
   }
 
   inline bool update(uint16_t raw_value) {
-    update_from_config();
-    current_value = hma_filter.GetAverage(raw_value);
-    if (sensor_index == 1) {
-      write_to_sensor_data_send_buffer(current_value);
+    if (should_update_config) {
+      update_from_config();
     }
-    // deriv1.update(current_value);
+    current_raw_value = hma_filter.GetAverage(raw_value);
+    // if (sensor_index == 1) {
+    //   write_to_sensor_data_send_buffer(current_raw_value);
+    // }
+    // deriv1.update(current_raw_value);
 
-    if (!is_pressed && current_value > press_threshold) {
+    if (!is_pressed && current_raw_value > press_raw_threshold) {
       is_pressed = true;
-    } else if (is_pressed && current_value < release_threshold) {
+    } else if (is_pressed && current_raw_value < release_raw_threshold) {
       is_pressed = false;
     }
     return is_pressed;
+  }
+
+ private:
+  inline void update_from_config() {
+    press_raw_threshold = baseline_value + cfg_press_threshold;
+    release_raw_threshold = baseline_value + cfg_release_threshold;
+    if (cfg_hma_window_size != _cfg_hma_window_size) {
+      hma_filter = HullMovingAverage(cfg_hma_window_size);
+      _cfg_hma_window_size = cfg_hma_window_size;
+    }
   }
 };
 

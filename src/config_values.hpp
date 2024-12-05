@@ -21,6 +21,8 @@ extern uint64_t debounce_us;
 extern float hysteresis;
 // hull moving average window size
 extern uint64_t cfg_hma_window_size;
+extern uint64_t cfg_press_threshold;
+extern uint64_t cfg_release_threshold;
 // TODO: player1/player2 config option
 
 // TODO: add weighted moving average and hull moving average
