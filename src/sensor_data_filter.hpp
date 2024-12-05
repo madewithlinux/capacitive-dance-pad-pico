@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include "config_values.hpp"
+#include "teleplot_task.hpp"
 
 #pragma region f32 filters
 
@@ -80,7 +81,7 @@ using std::sqrt;
 
 // Calculates the Weighted Moving Average for a given period size.
 // Values provided to this class should fall in [−32,768, 32,767] otherwise it
-// may overflow. We use a 32-bit integer for the intermediate sums which we
+// may overflow. We use a 64-bit integer for the intermediate sums which we
 // then restrict back down to 16-bits.
 class WeightedMovingAverage {
  public:
@@ -91,13 +92,13 @@ class WeightedMovingAverage {
     // Add current value and remove oldest value.
     // e.g. with value = 5 and cur_count_ = 0
     // [4, 3, 2, 1] -> 10 becomes 10 + 5 - 4 = 11 -> [5, 3, 2, 1]
-    int32_t next_sum = cur_sum_ + value - values_[cur_count_];
+    int64_t next_sum = cur_sum_ + value - values_[cur_count_];
     // Update weighted sum giving most weight to the newest value.
     // [1*4, 2*3, 3*2, 4*1] -> 20 becomes 20 + 4*5 - 10 = 30
     //     -> [4*5, 1*3, 2*2, 3*1]
     // Subtracting by cur_sum_ is the same as removing 1 from each of the weight
     // coefficients.
-    int32_t next_weighted_sum = cur_weighted_sum_ + size_ * value - cur_sum_;
+    int64_t next_weighted_sum = cur_weighted_sum_ + size_ * value - cur_sum_;
     cur_sum_ = next_sum;
     cur_weighted_sum_ = next_weighted_sum;
     values_[cur_count_] = value;
@@ -110,15 +111,13 @@ class WeightedMovingAverage {
     return next_weighted_sum / sum_weights;
   }
 
-  inline size_t GetSize() { return size_; }
-
   // Delete default constructor. Size MUST be explicitly specified.
   WeightedMovingAverage() = delete;
 
  private:
   size_t size_;
-  int32_t cur_sum_;
-  int32_t cur_weighted_sum_;
+  int64_t cur_sum_;
+  int64_t cur_weighted_sum_;
   // Keep track of all values we have in a circular array.
   int16_t values_[kWindowSize];
   size_t cur_count_;
@@ -156,6 +155,19 @@ class HullMovingAverage {
   WeightedMovingAverage hull_;
 };
 
+// TODO: this is too noisy to be useful...
+class derivative_filter_i16 {
+  int16_t prev_value = 0;
+  int16_t d_dv = 0;
+
+ public:
+  inline int16_t get_current_value() { return d_dv; }
+  inline void update(int16_t next_value) {
+    d_dv = next_value - prev_value;
+    prev_value = next_value;
+  }
+};
+
 struct sensor_data_filter {
   // copies of config values, for change detection
   uint16_t press_threshold = 100;
@@ -163,6 +175,7 @@ struct sensor_data_filter {
   uint16_t window_size = cfg_hma_window_size;
   // filters
   HullMovingAverage hma_filter = HullMovingAverage(window_size);
+  // derivative_filter_i16 deriv1;
   // state
   uint16_t current_value = 0;
   bool is_pressed = false;
@@ -192,6 +205,11 @@ struct sensor_data_filter {
   inline bool update(uint16_t raw_value) {
     update_from_config();
     current_value = hma_filter.GetAverage(raw_value);
+    if (sensor_index == 1) {
+      write_to_sensor_data_send_buffer(current_value);
+    }
+    // deriv1.update(current_value);
+
     if (!is_pressed && current_value > press_threshold) {
       is_pressed = true;
     } else if (is_pressed && current_value < release_threshold) {

@@ -19,7 +19,6 @@
 // uint16_t touch_sensor_thresholds[num_touch_sensors] = {200, 200, 200, 200, 200, 200, 200, 200};
 uint16_t touch_sensor_thresholds[num_touch_sensors] = {200};
 uint16_t touch_sensor_baseline[num_touch_sensors] = {0};
-// normalized_sensor_data_filter normalized_touch_sensor_data[num_touch_sensors] = {0};
 sensor_data_filter touch_sensor_data[num_touch_sensors];
 
 volatile uint32_t touch_sample_count = 0;
