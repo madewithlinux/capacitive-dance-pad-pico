@@ -57,11 +57,15 @@ void teleplot_task() {
     float base_sum = 0;
     for (uint i = 0; i < num_touch_sensors; i++) {
       float val;
-      if (teleplot_normalize_values) {
-        val = stats.by_sensor[i].get_mean_float() - touch_sensor_baseline[i];
-      } else {
-        val = stats.by_sensor[i].get_mean_float();
-      }
+      // if (teleplot_normalize_values) {
+      //   val = stats.by_sensor[i].get_mean_float() - touch_sensor_baseline[i];
+      // } else {
+      //   val = stats.by_sensor[i].get_mean_float();
+      // }
+
+      // val = normalized_touch_sensor_data[i].get_current_value();
+      val = touch_sensor_data[i].get_current_value();
+
       raw_sum = raw_sum + stats.by_sensor[i].get_mean_float();
       base_sum = base_sum + touch_sensor_baseline[i];
       teleplot_printf(">t%d,s:%u:%.3f\r\n", i, timestamp, val);

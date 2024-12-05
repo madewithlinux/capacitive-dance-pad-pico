@@ -28,7 +28,7 @@ class running_stats {
     if (iir_filter_value < 0) {
       iir_filter_value = (float)v;
     } else {
-      iir_filter_value = iir_filter_b * ((float)v) + (1.0 - iir_filter_b) * iir_filter_value;
+      iir_filter_value = iir_filter_b * iir_filter_value + (1.0 - iir_filter_b) * ((float)v);
     }
   }
 

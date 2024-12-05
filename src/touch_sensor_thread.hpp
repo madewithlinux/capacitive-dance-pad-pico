@@ -2,9 +2,12 @@
 #include <array>
 #include "running_stats.hpp"
 #include "touch_sensor_config.hpp"
+#include "sensor_data_filter.hpp"
 
 extern uint16_t touch_sensor_thresholds[num_touch_sensors];
-extern float touch_sensor_baseline[num_touch_sensors];
+extern uint16_t touch_sensor_baseline[num_touch_sensors];
+// extern normalized_sensor_data_filter normalized_touch_sensor_data[num_touch_sensors];
+extern sensor_data_filter touch_sensor_data[num_touch_sensors];
 
 // for deriving the sampling rate
 extern volatile uint32_t touch_sample_count;

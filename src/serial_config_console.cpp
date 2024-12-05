@@ -30,10 +30,11 @@ uint64_t serial_teleplot_report_interval_us = 80 * 1000;
 bool teleplot_normalize_values = true;
 int filter_type = FILTER_TYPE_MEDIAN;
 bool usb_hid_enabled = true;
-float iir_filter_b = 0.8;
+float iir_filter_b = 0.01;
 uint64_t sleep_us_between_samples = 0;
 uint64_t debounce_us = 10000; // 10ms
 float hysteresis = 50.0;
+uint64_t cfg_hma_window_size = 64;
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
@@ -49,6 +50,7 @@ static config_console_value config_values[] = {
     {"sleep_us_between_samples", &sleep_us_between_samples},
     {"debounce_us", &debounce_us},
     {"hysteresis", &hysteresis},
+    {"cfg_hma_window_size", &cfg_hma_window_size},
 };
 
 // #if SERIAL_CONFIG_CONSOLE

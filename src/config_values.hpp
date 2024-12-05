@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: add cfg_ prefix to all config values?
+
 // config values:
 extern float threshold_factor;
 extern float threshold_value;
@@ -17,6 +19,8 @@ extern uint64_t sleep_us_between_samples;
 extern uint64_t debounce_us;
 // set to 0 to disable hysteresis
 extern float hysteresis;
+// hull moving average window size
+extern uint64_t cfg_hma_window_size;
 // TODO: player1/player2 config option
 
 // TODO: add weighted moving average and hull moving average

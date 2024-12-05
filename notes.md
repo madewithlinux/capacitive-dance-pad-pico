@@ -41,8 +41,14 @@ set filter_type 0
 set filter_type 1
 #define FILTER_TYPE_IIR 2
 set filter_type 2
+set iir_filter_b 0.99
+set iir_filter_b 0.9
 set iir_filter_b 0.8
 set iir_filter_b 0.1
+set iir_filter_b 0.05
+set iir_filter_b 0.01
+set iir_filter_b 0.001
+set iir_filter_b 0.0001
 
 set teleplot_normalize_values 0
 set teleplot_normalize_values 1

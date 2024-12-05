@@ -18,7 +18,9 @@
 // NOTE: THESE ARE MUTABLE
 // uint16_t touch_sensor_thresholds[num_touch_sensors] = {200, 200, 200, 200, 200, 200, 200, 200};
 uint16_t touch_sensor_thresholds[num_touch_sensors] = {200};
-float touch_sensor_baseline[num_touch_sensors] = {0};
+uint16_t touch_sensor_baseline[num_touch_sensors] = {0};
+// normalized_sensor_data_filter normalized_touch_sensor_data[num_touch_sensors] = {0};
+sensor_data_filter touch_sensor_data[num_touch_sensors];
 
 volatile uint32_t touch_sample_count = 0;
 
@@ -137,6 +139,8 @@ touchpad_stats_t __time_critical_func(sample_touch_inputs_for_us)(uint64_t durat
 
       int16_t value = TOUCH_TIMEOUT - pio_sm_get_blocking(pio0, 0);
       stats_by_sensor[i].add_value(value);
+      // normalized_touch_sensor_data[i].update(value);
+      touch_sensor_data[i].update(value);
       pio_interrupt_clear(pio0, 0);
       // pio_interrupt_clear(pio0, 1);
       if (sleep_us_between_samples) {
@@ -168,6 +172,7 @@ void __time_critical_func(run_touch_sensor_thread)() {
   touchpad_stats_t stats = sample_touch_inputs_for_us(threshold_sampling_duration_us, /*init=*/true);
   for (uint i = 0; i < num_touch_sensors; i++) {
     touch_sensor_baseline[i] = stats.by_sensor[i].get_mean_float();
+    touch_sensor_data[i] = sensor_data_filter(i, touch_sensor_baseline[i]);
     switch (threshold_type) {
       case THRESHOLD_TYPE_FACTOR:
         touch_sensor_thresholds[i] = uint16_t(stats.by_sensor[i].get_mean_float() * threshold_factor);
