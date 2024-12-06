@@ -194,7 +194,9 @@ class sensor_data_filter {
   inline sensor_data_filter() : sensor_index(0), baseline_value(0) {}
   // actual constructor to be used
   inline sensor_data_filter(uint8_t sensor_index, uint16_t baseline_value)
-      : sensor_index(sensor_index), baseline_value(baseline_value) {}
+      : sensor_index(sensor_index), baseline_value(baseline_value) {
+    update_from_config();
+  }
 
   inline void set_should_update_config() { should_update_config = true; }
 
@@ -227,7 +229,9 @@ class sensor_data_filter {
  private:
   inline void update_from_config() {
     press_raw_threshold = baseline_value + cfg_press_threshold;
+    _cfg_press_threshold = cfg_press_threshold;
     release_raw_threshold = baseline_value + cfg_release_threshold;
+    _cfg_release_threshold = cfg_release_threshold;
     if (cfg_hma_window_size != _cfg_hma_window_size) {
       hma_filter = HullMovingAverage(cfg_hma_window_size);
       _cfg_hma_window_size = cfg_hma_window_size;

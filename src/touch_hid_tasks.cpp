@@ -47,96 +47,7 @@ uint8_t game_button_to_keycode_map[NUM_GAME_BUTTONS] = {
 };
 
 uint8_t hid_report_keycodes[6] = {0};
-bool hid_report_dirty = true;
 bool active_game_buttons_map[NUM_GAME_BUTTONS] = {false};
-touchpad_stats_t stats;
-
-// for debounce
-static uint64_t game_button_press_timestamp[NUM_GAME_BUTTONS] = {0};
-static uint64_t game_button_release_timestamp[NUM_GAME_BUTTONS] = {0};
-
-// TODO reorganize
-bool sensor_currently_active[num_touch_sensors] = {false};
-
-void touch_stats_handler_task() {
-  if (queue_is_empty(&q_touchpad_stats)) {
-    return;
-  }
-
-  // remove from the queue until it's empty, because we want the most recent one
-  while (!queue_is_empty(&q_touchpad_stats)) {
-    queue_try_remove(&q_touchpad_stats, &stats);
-  }
-
-  bool prev_active_game_buttons_map[NUM_GAME_BUTTONS] = {0};
-  memcpy(prev_active_game_buttons_map, active_game_buttons_map, sizeof(active_game_buttons_map));
-
-  memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
-  for (uint i = 0; i < num_touch_sensors; i++) {
-    switch (filter_type) {
-      case FILTER_TYPE_MEDIAN:
-        if (stats.by_sensor[i].median_is_above_threshold_hysteresis(sensor_currently_active[i], hysteresis)) {
-          active_game_buttons_map[touch_sensor_configs[i].button] = true;
-          sensor_currently_active[i] = true;
-        } else {
-          sensor_currently_active[i] = false;
-        }
-        break;
-      case FILTER_TYPE_AVG:
-        if (stats.by_sensor[i].avg_is_above_threshold_hysteresis(sensor_currently_active[i], hysteresis)) {
-          active_game_buttons_map[touch_sensor_configs[i].button] = true;
-          sensor_currently_active[i] = true;
-        } else {
-          sensor_currently_active[i] = false;
-        }
-        break;
-      case FILTER_TYPE_IIR:
-        if (stats.by_sensor[i].iir_is_above_threshold_hysteresis(sensor_currently_active[i], hysteresis)) {
-          active_game_buttons_map[touch_sensor_configs[i].button] = true;
-          sensor_currently_active[i] = true;
-        } else {
-          sensor_currently_active[i] = false;
-        }
-        break;
-
-      default:
-        // TODO invalid value
-        break;
-    }
-  }
-
-  if (debounce_us) {
-    uint64_t now_us = time_us_64();
-    for (int gbtn = 0; gbtn < NUM_GAME_BUTTONS; gbtn++) {
-      if (now_us - game_button_press_timestamp[gbtn] < debounce_us) {
-        // inside press debounce window
-        // ignore that release
-        active_game_buttons_map[gbtn] = true;
-      } else if (now_us - game_button_release_timestamp[gbtn] < debounce_us) {
-        // inside release debounce window
-        // ignore that press
-        active_game_buttons_map[gbtn] = false;
-      } else if (prev_active_game_buttons_map[gbtn] && !active_game_buttons_map[gbtn]) {
-        // was pressed, now released
-        game_button_release_timestamp[gbtn] = now_us;
-      } else if (!prev_active_game_buttons_map[gbtn] && active_game_buttons_map[gbtn]) {
-        // was released, now pressed
-        game_button_press_timestamp[gbtn] = now_us;
-      }
-    }
-  }
-
-  memset(hid_report_keycodes, 0, sizeof(hid_report_keycodes));
-  int hid_keycode_idx = 0;
-  for (int gbtn = 0; gbtn < NUM_GAME_BUTTONS; gbtn++) {
-    if (active_game_buttons_map[gbtn]) {
-      uint8_t kc = game_button_to_keycode_map[gbtn];
-      hid_report_keycodes[hid_keycode_idx] = kc;
-      hid_keycode_idx++;
-    }
-  }
-  hid_report_dirty = true;
-}
 
 void hid_task(void) {
   if (!usb_hid_enabled) {
@@ -149,14 +60,23 @@ void hid_task(void) {
     tud_remote_wakeup();
   }
 
-  if (!hid_report_dirty) {
-    return;
-  }
-
   // skip if hid is not ready yet
   if (!tud_hid_ready())
     return;
 
+  memset(active_game_buttons_map, 0, sizeof(active_game_buttons_map));
+  for (uint i = 0; i < num_touch_sensors; i++) {
+    active_game_buttons_map[touch_sensor_configs[i].button] = touch_sensor_data[i].get_is_pressed();
+  }
+  memset(hid_report_keycodes, 0, sizeof(hid_report_keycodes));
+  int hid_keycode_idx = 0;
+  for (int gbtn = 0; gbtn < NUM_GAME_BUTTONS; gbtn++) {
+    if (active_game_buttons_map[gbtn]) {
+      uint8_t kc = game_button_to_keycode_map[gbtn];
+      hid_report_keycodes[hid_keycode_idx] = kc;
+      hid_keycode_idx++;
+    }
+  }
+
   tud_hid_keyboard_report(REPORT_ID_KEYBOARD, 0, hid_report_keycodes);
-  hid_report_dirty = false;
 }

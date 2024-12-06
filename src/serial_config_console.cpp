@@ -25,7 +25,7 @@ float threshold_factor = DEFAULT_THRESHOLD_FACTOR;
 float threshold_value = DEFAULT_THRESHOLD_VALUE;
 int threshold_type = THRESHOLD_TYPE_VALUE;
 uint64_t threshold_sampling_duration_us = 2 * 1000 * 1000;
-uint64_t sampling_duration_us = 1 * 1000;
+uint64_t sampling_duration_us = 2 * 1000;
 uint64_t serial_teleplot_report_interval_us = 80 * 1000;
 bool teleplot_normalize_values = true;
 int filter_type = FILTER_TYPE_MEDIAN;
@@ -37,6 +37,7 @@ float hysteresis = 50.0;
 uint64_t cfg_hma_window_size = 128;
 uint64_t cfg_press_threshold = 150;
 uint64_t cfg_release_threshold = 100;
+uint64_t cfg_calibration_skip_samples = 1000;
 
 static config_console_value config_values[] = {
     {"threshold_factor", &threshold_factor},
@@ -102,9 +103,11 @@ void serial_console_task() {
         config_values[i].print_config_line(itf);
       }
       tud_cdc_n_write_str(itf, "\r\n");
-    } else if (line_buf.rfind("touch_sensor_thresholds") == 0) {
+    } else if (line_buf.rfind("calibration_sample_count") == 0) {
+      CDC_PRINTF(itf, "calibration_sample_count = %i\r\n", calibration_sample_count);
+    } else if (line_buf.rfind("touch_sensor_baseline") == 0) {
       for (uint i = 0; i < num_touch_sensors; i++) {
-        CDC_PRINTF(itf, "touch_sensor_thresholds[%i] = %i\r\n", i, touch_sensor_thresholds[i]);
+        CDC_PRINTF(itf, "touch_sensor_baseline[%i] = %i\r\n", i, touch_sensor_baseline[i]);
       }
     } else if (line_buf.rfind("set ") == 0) {
       char name_buf[128] = {0};

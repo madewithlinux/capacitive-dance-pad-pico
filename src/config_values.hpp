@@ -1,6 +1,7 @@
 #pragma once
 
 // TODO: add cfg_ prefix to all config values?
+// TODO: remove values that are now obsolete
 
 // config values:
 extern float threshold_factor;
@@ -23,6 +24,7 @@ extern float hysteresis;
 extern uint64_t cfg_hma_window_size;
 extern uint64_t cfg_press_threshold;
 extern uint64_t cfg_release_threshold;
+extern uint64_t cfg_calibration_skip_samples;
 // TODO: player1/player2 config option
 
 // TODO: add weighted moving average and hull moving average

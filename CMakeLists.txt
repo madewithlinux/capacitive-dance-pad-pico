@@ -49,7 +49,6 @@ target_sources(common_stuff INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/src/multicore_ipc.h
     ${CMAKE_CURRENT_LIST_DIR}/src/reset_interface.c
     ${CMAKE_CURRENT_LIST_DIR}/src/reset_interface.h
-    ${CMAKE_CURRENT_LIST_DIR}/src/running_stats.hpp
     ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.cpp
     ${CMAKE_CURRENT_LIST_DIR}/src/serial_config_console.hpp
     ${CMAKE_CURRENT_LIST_DIR}/src/teleplot_task.cpp
@@ -115,14 +114,14 @@ target_compile_definitions(sockpad_itg8 PRIVATE
 pico_add_extra_outputs(sockpad_itg8)
 pico_set_binary_type(sockpad_itg8 copy_to_ram)
 
-add_executable(sockpad_itg8_parallel)
-target_link_libraries(sockpad_itg8_parallel common_stuff)
-target_compile_definitions(sockpad_itg8_parallel PRIVATE
-    TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
-    TOUCH_POLLING_TYPE=TOUCH_POLLING_PARALLEL
-)
-pico_add_extra_outputs(sockpad_itg8_parallel)
-pico_set_binary_type(sockpad_itg8_parallel copy_to_ram)
+# add_executable(sockpad_itg8_parallel)
+# target_link_libraries(sockpad_itg8_parallel common_stuff)
+# target_compile_definitions(sockpad_itg8_parallel PRIVATE
+#     TOUCH_SENSOR_CONFIG=TOUCH_SENSOR_CONFIG_ITG8
+#     TOUCH_POLLING_TYPE=TOUCH_POLLING_PARALLEL
+# )
+# pico_add_extra_outputs(sockpad_itg8_parallel)
+# pico_set_binary_type(sockpad_itg8_parallel copy_to_ram)
 
 
 add_executable(sockpad_pump)

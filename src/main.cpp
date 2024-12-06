@@ -55,7 +55,6 @@ int main() {
   multicore_launch_core1(run_touch_sensor_thread);
   while (1) {
     tud_task();  // tinyusb device task
-    touch_stats_handler_task();
     hid_task();
     webserial_task();
     serial_console_task();

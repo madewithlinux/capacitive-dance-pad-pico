@@ -19,7 +19,7 @@ enum blink_interval_t {
 
 // queues for core1 to send data to core0
 extern queue_t q_blink_interval;
-extern queue_t q_touchpad_stats;
+// extern queue_t q_touchpad_stats;
 // queues for core0 to send data to core1
 // TODO: none so far
 
