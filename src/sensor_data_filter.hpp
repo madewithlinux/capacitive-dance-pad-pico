@@ -79,8 +79,10 @@ constexpr size_t kWindowSize = 256;
 using std::min;
 using std::sqrt;
 
+/// adapted from https://github.com/teejusb/fsr/blob/master/fsr.ino
+
 // Calculates the Weighted Moving Average for a given period size.
-// Values provided to this class should fall in [−32,768, 32,767] otherwise it
+// Values provided to this class should fall in [0, 65,535] otherwise it
 // may overflow. We use a 64-bit integer for the intermediate sums which we
 // then restrict back down to 16-bits.
 class WeightedMovingAverage {
@@ -88,7 +90,7 @@ class WeightedMovingAverage {
   inline WeightedMovingAverage(size_t size)
       : size_(min(size, kWindowSize)), cur_sum_(0), cur_weighted_sum_(0), values_{}, cur_count_(0) {}
 
-  inline int16_t GetAverage(int16_t value) {
+  inline uint16_t GetAverage(uint16_t value) {
     // Add current value and remove oldest value.
     // e.g. with value = 5 and cur_count_ = 0
     // [4, 3, 2, 1] -> 10 becomes 10 + 5 - 4 = 11 -> [5, 3, 2, 1]
@@ -107,7 +109,7 @@ class WeightedMovingAverage {
     // are integers and we need to return an int anyways. Off by one isn't
     // substantial here.
     // Sum of weights = sum of all integers from [1, size_]
-    int16_t sum_weights = ((size_ * (size_ + 1)) / 2);
+    uint16_t sum_weights = ((size_ * (size_ + 1)) / 2);
     return next_weighted_sum / sum_weights;
   }
 
@@ -119,7 +121,7 @@ class WeightedMovingAverage {
   int64_t cur_sum_;
   int64_t cur_weighted_sum_;
   // Keep track of all values we have in a circular array.
-  int16_t values_[kWindowSize];
+  uint16_t values_[kWindowSize];
   size_t cur_count_;
 };
 
@@ -138,10 +140,10 @@ class HullMovingAverage {
  public:
   inline HullMovingAverage(size_t size) : wma1_(size / 2), wma2_(size), hull_(sqrt(size)) {}
 
-  inline int16_t GetAverage(int16_t value) {
-    int16_t wma1_value = wma1_.GetAverage(value);
-    int16_t wma2_value = wma2_.GetAverage(value);
-    int16_t hull_value = hull_.GetAverage(2 * wma1_value - wma2_value);
+  inline uint16_t GetAverage(uint16_t value) {
+    uint16_t wma1_value = wma1_.GetAverage(value);
+    uint16_t wma2_value = wma2_.GetAverage(value);
+    uint16_t hull_value = hull_.GetAverage(2 * wma1_value - wma2_value);
 
     return hull_value;
   }
@@ -179,10 +181,10 @@ class sensor_data_filter {
   // derivative_filter_i16 deriv1;
   // state
   uint16_t current_raw_value = 0;
-  bool is_pressed = false;
+  volatile bool is_pressed = false;
   uint16_t press_raw_threshold = UINT16_MAX;
   uint16_t release_raw_threshold = UINT16_MAX;
-  bool should_update_config = false;
+  bool should_update_config = true;
   // parameters
   uint8_t sensor_index;
   uint16_t baseline_value;
@@ -201,10 +203,12 @@ class sensor_data_filter {
     // convert to float first in case result is negative
     return ((float)current_raw_value) - ((float)baseline_value);
   }
+  inline bool get_is_pressed() { return is_pressed; }
 
   inline bool update(uint16_t raw_value) {
     if (should_update_config) {
       update_from_config();
+      should_update_config = false;
     }
     current_raw_value = hma_filter.GetAverage(raw_value);
     // if (sensor_index == 1) {
